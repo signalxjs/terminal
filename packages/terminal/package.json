@@ -1,0 +1,64 @@
+{
+    "name": "@sigx/terminal",
+    "version": "0.4.1",
+    "description": "SignalX Terminal - TUI framework with TSX support",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./jsx-runtime": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./jsx-dev-runtime": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "dev": "vite build --watch"
+    },
+    "keywords": [
+        "sigx",
+        "signalx",
+        "terminal",
+        "tui",
+        "cli",
+        "console",
+        "jsx",
+        "tsx"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/terminal.git",
+        "directory": "packages/terminal"
+    },
+    "homepage": "https://github.com/signalxjs/terminal/tree/main/packages/terminal",
+    "bugs": {
+        "url": "https://github.com/signalxjs/terminal/issues"
+    },
+    "dependencies": {
+        "@sigx/reactivity": "^0.4.0",
+        "@sigx/runtime-core": "^0.4.0",
+        "@sigx/runtime-terminal": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/vite": "^0.4.3",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

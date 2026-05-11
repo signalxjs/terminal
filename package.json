@@ -1,0 +1,52 @@
+{
+  "name": "sigx-terminal",
+  "version": "0.4.1",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "description": "SignalX Terminal — TUI framework with TSX support (terminal + runtime-terminal)",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @sigx/runtime-terminal run build && pnpm --filter @sigx/terminal run build",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint packages/*/src",
+    "lint:fix": "oxlint --fix packages/*/src",
+    "publish:dry": "node scripts/publish.js --dry-run",
+    "publish:all": "node scripts/publish.js",
+    "publish:beta": "node scripts/publish.js --tag beta",
+    "verify:pack": "node scripts/verify-pack.js",
+    "version:set": "node scripts/bump-version.js",
+    "version:patch": "node scripts/bump-version.js patch",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major",
+    "clean": "node -e \"const fs=require('fs'),p=require('path');const rm=x=>fs.rmSync(x,{recursive:true,force:true});for(const d of fs.readdirSync('packages')){rm(p.join('packages',d,'dist'));rm(p.join('packages',d,'node_modules'));}rm('node_modules');rm('pnpm-lock.yaml');\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript/native-preview": "7.0.0-dev.20260507.1",
+    "happy-dom": "^20.9.0",
+    "oxlint": "^1.63.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.11",
+    "vitest": "^4.1.5"
+  },
+  "keywords": [
+    "SignalX",
+    "sigx",
+    "terminal",
+    "tui",
+    "cli",
+    "tsx"
+  ],
+  "author": "Andreas Ekdahl",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/signalxjs/terminal.git"
+  },
+  "homepage": "https://github.com/signalxjs/terminal",
+  "bugs": {
+    "url": "https://github.com/signalxjs/terminal/issues"
+  }
+}

@@ -1,0 +1,50 @@
+# @sigx/terminal
+
+[![npm](https://img.shields.io/npm/v/@sigx/terminal.svg?label=%40sigx%2Fterminal&color=blue)](https://www.npmjs.com/package/@sigx/terminal)
+[![license](https://img.shields.io/npm/l/@sigx/terminal.svg)](./LICENSE)
+[![ci](https://github.com/signalxjs/terminal/actions/workflows/ci.yml/badge.svg)](https://github.com/signalxjs/terminal/actions/workflows/ci.yml)
+
+**SignalX Terminal** — a TUI framework with TSX support built on the [SignalX](https://github.com/signalxjs/core) reactivity system.
+
+> 🚧 Early public release (`0.4.x`). API is small and stabilising.
+
+## Packages
+
+| Package | Description |
+| --- | --- |
+| [`@sigx/terminal`](./packages/terminal) | Public entry: re-exports reactivity, runtime-core and the terminal renderer + components. Set `jsxImportSource: "@sigx/terminal"` to use TSX. |
+| [`@sigx/runtime-terminal`](./packages/runtime-terminal) | The terminal renderer + built-in components (`Input`, `Button`, `Select`, `Checkbox`, `ProgressBar`). |
+
+## Install
+
+```bash
+pnpm add @sigx/terminal
+```
+
+## Quick start
+
+```tsx
+/** @jsxImportSource @sigx/terminal */
+import { signal, component, defineApp, Button } from '@sigx/terminal';
+
+const App = component(() => {
+    const count = signal(0);
+    return () => (
+        <box>
+            <text>Count: {count()}</text>
+            <Button label="Increment" onPress={() => count.set(count() + 1)} />
+        </box>
+    );
+});
+
+defineApp(App).mount();
+```
+
+## Related repos
+
+- [`signalxjs/core`](https://github.com/signalxjs/core) — reactivity, runtime-core, DOM renderer, SSR, Vite plugin.
+- [`signalxjs/cli`](https://github.com/signalxjs/cli) — the `sigx` CLI and `create-sigx` scaffolder.
+
+## License
+
+[MIT](./LICENSE)
