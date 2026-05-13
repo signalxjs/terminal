@@ -9,12 +9,14 @@ export const Button = component<
     Define.Event<"click">
 >(({ props, emit }) => {
     const id = Math.random().toString(36).slice(2);
+    let isReady = false; // Prevent immediate click after mount
 
     const isFocused = () => focusState.activeId === id;
     const pressed = signal({ value: false });
 
     const handleKey = (key: string) => {
         if (!isFocused()) return;
+        if (!isReady) return; // Ignore keys until component is ready
 
         if (key === '\r' || key === '\n' || key === ' ') { // Enter or Space
             // Visual press effect + emit click
@@ -34,6 +36,8 @@ export const Button = component<
     onMounted(() => {
         registerFocusable(id);
         keyCleanup = onKey(handleKey);
+        // Small delay to prevent immediate click from previous Enter key
+        setTimeout(() => { isReady = true; }, 50);
     });
 
     onUnmounted(() => {
