@@ -57,9 +57,10 @@ describe('focus helpers — no effect-dep leakage', () => {
         const runsAfterUnmount = runs;
         expect(runsAfterUnmount).toBe(2);
 
-        // Now mutate focusState from the outside. The effect must NOT re-run
-        // — it never legitimately read focusState.
-        focusState.activeId = 'b';
+        // Now mutate focusState from the outside to a value distinct from
+        // whatever unregisterFocusable settled on. The effect must NOT
+        // re-run — it never legitimately read focusState.
+        focusState.activeId = 'c-not-registered';
         expect(runs).toBe(runsAfterUnmount);
     });
 
@@ -107,9 +108,10 @@ describe('focus helpers — no effect-dep leakage', () => {
         trigger.phase = 3;
         const runsAfter = runs;
 
-        // Random external mutation must not re-run the effect.
-        focusState.activeId = 'a';
-        focusState.activeId = 'b';
+        // External mutation to a value distinct from whatever the helpers
+        // settled on must not re-run the effect.
+        focusState.activeId = 'not-registered-x';
+        focusState.activeId = 'not-registered-y';
         expect(runs).toBe(runsAfter);
     });
 });
