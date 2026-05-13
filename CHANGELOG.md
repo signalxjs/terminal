@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-05-13
+
+### Fixed
+
+- `runtime-terminal`: focus helpers (`registerFocusable`, `unregisterFocusable`, `focus`, `focusNext`, `focusPrev`) now wrap their `focusState` reads and writes in `untrack(...)` so they no longer leak `focusState.activeId` as a dependency to whatever effect happens to be on the stack. Without this, a child component's `onUnmounted` calling `unregisterFocusable` during a parent's render-effect patch could re-trigger the parent effect mid-patch and stack two subtrees on top of each other (visible in the `sigx create` wizard as a duplicated Done screen and a spurious "folder already exists" error). Pairs with the `@sigx/reactivity@0.4.6` re-entrancy guard.
+
+### Changed
+
+- Bump `@sigx/reactivity` and `@sigx/runtime-core` peer/runtime dependencies to `^0.4.6` so consumers automatically pick up the companion core-level fix.
+
 ## [0.4.2] - 2026-05-13
 
 ### Fixed
