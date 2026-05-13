@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-05-13
+
+### Changed
+
+- Bump `@sigx/reactivity` and `@sigx/runtime-core` peer/runtime dependencies to `^0.4.7` to pick up [signalxjs/core#22](https://github.com/signalxjs/core/pull/22), which preserves a component's `cleanup` closure through same-type parent re-render patches. This was the actual root cause of the `sigx create` wizard's duplicated Select on the Done step / "Directory already exists" error — the previous `0.4.3` `untrack` hardening and `0.4.6` reactivity re-entrancy guard were defensive against the symptom; this is the fix.
+
 ## [0.4.3] - 2026-05-13
 
 ### Fixed
