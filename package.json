@@ -6,6 +6,7 @@
   "description": "SignalX Terminal — TUI framework with TSX support (terminal + runtime-terminal)",
   "type": "module",
   "scripts": {
+    "wt": "node scripts/worktree.mjs",
     "build": "pnpm --filter @sigx/runtime-terminal run build && pnpm --filter @sigx/terminal run build",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
