@@ -1,17 +1,15 @@
 # @sigx/runtime-terminal
 
-Terminal UI components for the Sigx runtime (demo/experimental).
+The terminal renderer and built-in UI components for SignalX — `Button`,
+`Input`, `ProgressBar` and `Checkbox`, each focusable with two-way `model`
+binding where it makes sense. Most apps use these via the
+[`@sigx/terminal`](https://sigx.dev/terminal/) entry point.
 
-## Components
+## 📚 Documentation
 
-- `Button` - a focusable, clickable control.
-- `Input` - a focusable text input with two-way `model` binding.
-- `ProgressBar` - a read-only progress indicator.
-- `Checkbox` - a focusable checkbox with two-way `model` binding.
+Full guides, API reference and live examples → **<https://sigx.dev/terminal/>**
 
-## `Checkbox` Usage
-
-The `Checkbox` component uses two-way `model` binding. That means you can write:
+## Quick taste
 
 ```tsx
 /** @jsxImportSource @sigx/terminal */
@@ -25,16 +23,14 @@ renderTerminal(
 );
 ```
 
-When the user presses Space or Enter while the `Checkbox` is focused, it will emit `update:modelValue` and `change` events in addition to toggling the visual state.
+Component props, events and the full renderer API are documented on the docs
+site → <https://sigx.dev/terminal/>.
 
-Props:
+## Part of SignalX
 
-- `modelValue` (model) - boolean - current value (two-way binding via `model`).
-- `label` - string - optional label to display.
-- `autofocus` - boolean - focus on mount.
-- `disabled` - boolean - disable interaction.
+- [`@sigx/terminal`](https://sigx.dev/terminal/) — public TUI entry point.
+- [`sigx`](https://sigx.dev/core/) — reactivity, runtime-core, DOM renderer, SSR, Vite plugin.
 
-Events:
+## License
 
-- `update:modelValue` - emitted when the value changes (used by `model`).
-- `change` - emitted with the new value when toggled.
+[MIT](https://github.com/signalxjs/terminal/blob/main/LICENSE)
