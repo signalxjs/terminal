@@ -50,7 +50,9 @@
     "dependencies": {
         "@sigx/reactivity": "^0.4.9",
         "@sigx/runtime-core": "^0.4.9",
-        "@sigx/runtime-terminal": "workspace:^"
+        "@sigx/runtime-terminal": "workspace:^",
+        "@sigx/terminal-zero": "workspace:^",
+        "@sigx/terminal-ui": "workspace:^"
     },
     "devDependencies": {
         "@sigx/vite": "^0.4.7",

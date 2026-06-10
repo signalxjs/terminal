@@ -1,0 +1,19 @@
+{
+    "name": "@sigx/example-static-log",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Static output demo: a spinner with permanent CLI output scrolling above it",
+    "scripts": {
+        "start": "tsx --tsconfig ./tsconfig.json src/main.tsx",
+        "typecheck": "tsgo --noEmit"
+    },
+    "dependencies": {
+        "@sigx/terminal": "workspace:^"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "tsx": "^4.20.0",
+        "typescript": "^5.9.3"
+    }
+}

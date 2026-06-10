@@ -1,7 +1,8 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, onMounted, onUnmounted, type Define } from '@sigx/runtime-core';
-import { onKey } from '../index';
-import { registerFocusable, unregisterFocusable, focusState, focus } from '../focus';
+import {
+    onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor,
+} from '@sigx/terminal-zero';
 
 export const Input = component<
     Define.Model<string> &
@@ -12,22 +13,18 @@ export const Input = component<
     Define.Event<"submit", string>
 >(({ props, emit }) => {
     const id = Math.random().toString(36).slice(2);
-    let isReady = false; // Prevent immediate submit after mount
-
+    let isReady = false;
     const isFocused = () => focusState.activeId === id;
-
     const getValue = () => props.model?.value || '';
 
     const handleKey = (key: string) => {
-        if (!isFocused()) return;
-        if (!isReady) return; // Ignore keys until component is ready
+        if (!isFocused() || !isReady) return;
 
-        if (key === '\r' || key === '\n') { // Enter (terminals may send \r or \n)
+        if (key === '\r' || key === '\n') {
             emit('submit', getValue());
             return;
         }
-
-        if (key === '\u007F' || key === '\b') { // Backspace
+        if (key === '\u007F' || key === '\b') { // Backspace / Delete
             const val = getValue();
             if (val.length > 0) {
                 const newValue = val.slice(0, -1);
@@ -36,9 +33,7 @@ export const Input = component<
             }
             return;
         }
-
-        // Ignore control characters
-        if (key.length > 1) return;
+        if (key.length > 1) return; // ignore control sequences
 
         const newValue = getValue() + key;
         if (props.model) props.model.value = newValue;
@@ -49,11 +44,8 @@ export const Input = component<
 
     onMounted(() => {
         registerFocusable(id);
-        if (props.autofocus) {
-            focus(id);
-        }
+        if (props.autofocus) focus(id);
         keyCleanup = onKey(handleKey);
-        // Small delay to prevent immediate submit from previous Enter key
         setTimeout(() => { isReady = true; }, 50);
     });
 
@@ -65,14 +57,19 @@ export const Input = component<
     return () => {
         const val = getValue().replace(/[\r\n]+/g, ' ');
         const placeholder = (props.placeholder || '').replace(/[\r\n]+/g, ' ');
-        const showCursor = isFocused();
-        // console.log('Input render', { val, placeholder, showCursor });
+        const focused = isFocused();
+        const hasValue = val.length > 0;
 
         return (
-            <box border="single" borderColor={showCursor ? 'green' : 'white'} label={props.label}>
-                <text>{val || placeholder}</text>
-                {showCursor && <text color="cyan">_</text>}
+            <box border="rounded" borderColor={resolveColor(focused ? 'accent' : 'line')} label={props.label} labelColor={resolveColor(focused ? 'accent' : 'dim')}>
+                <text color={resolveColor(hasValue ? 'fg' : 'dim')}>{val || placeholder}</text>
+                {focused && (
+                    // Block cursor: a reverse-video space (exactly one cell).
+                    <text backgroundColor={resolveColor('accent')} color={resolveColor('accentText')}> </text>
+                )}
             </box>
         );
     };
 }, { name: 'Input' });
+
+export default Input;

@@ -11,7 +11,11 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "paths": {
-      "@sigx/runtime-terminal": ["./packages/runtime-terminal/src/index.ts"]
+      "@sigx/runtime-terminal": ["./packages/runtime-terminal/src/index.ts"],
+      "@sigx/terminal-zero": ["./packages/terminal-zero/src/index.ts"],
+      "@sigx/terminal-zero/*": ["./packages/terminal-zero/src/*"],
+      "@sigx/terminal-ui": ["./packages/terminal-ui/src/index.ts"],
+      "@sigx/terminal-ui/*": ["./packages/terminal-ui/src/*"]
     }
   },
   "include": [

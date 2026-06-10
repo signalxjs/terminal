@@ -1,0 +1,91 @@
+{
+    "name": "@sigx/terminal-ui",
+    "version": "0.4.4",
+    "description": "SigX-tui design-system components for SignalX terminal UIs, built on @sigx/terminal-zero",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./theme": {
+            "import": "./dist/theme/index.js",
+            "types": "./dist/theme/index.d.ts"
+        },
+        "./buttons": {
+            "import": "./dist/buttons/index.js",
+            "types": "./dist/buttons/index.d.ts"
+        },
+        "./forms": {
+            "import": "./dist/forms/index.js",
+            "types": "./dist/forms/index.d.ts"
+        },
+        "./feedback": {
+            "import": "./dist/feedback/index.js",
+            "types": "./dist/feedback/index.d.ts"
+        },
+        "./navigation": {
+            "import": "./dist/navigation/index.js",
+            "types": "./dist/navigation/index.d.ts"
+        },
+        "./layout": {
+            "import": "./dist/layout/index.js",
+            "types": "./dist/layout/index.d.ts"
+        },
+        "./data": {
+            "import": "./dist/data/index.js",
+            "types": "./dist/data/index.d.ts"
+        },
+        "./fx": {
+            "import": "./dist/fx/index.js",
+            "types": "./dist/fx/index.d.ts"
+        },
+        "./tasks": {
+            "import": "./dist/tasks/index.js",
+            "types": "./dist/tasks/index.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "dev": "vite build --watch"
+    },
+    "keywords": [
+        "sigx",
+        "signalx",
+        "terminal",
+        "tui",
+        "cli",
+        "components",
+        "design-system"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/terminal.git",
+        "directory": "packages/terminal-ui"
+    },
+    "homepage": "https://github.com/signalxjs/terminal/tree/main/packages/terminal-ui",
+    "bugs": {
+        "url": "https://github.com/signalxjs/terminal/issues"
+    },
+    "dependencies": {
+        "@sigx/reactivity": "^0.4.9",
+        "@sigx/runtime-core": "^0.4.9",
+        "@sigx/terminal-zero": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/vite": "^0.4.7",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
