@@ -1,9 +1,9 @@
 # @sigx/runtime-terminal
 
 The terminal renderer and built-in UI components for SignalX — `Button`,
-`Input`, `ProgressBar` and `Checkbox`, each focusable with two-way `model`
-binding where it makes sense. Most apps use these via the
-[`@sigx/terminal`](https://sigx.dev/terminal/) entry point.
+`Input`, `Select`, `Checkbox` and `ProgressBar`. The interactive ones are
+focusable, with two-way `model` binding where it makes sense. Most apps use
+these via the [`@sigx/terminal`](https://sigx.dev/terminal/) entry point.
 
 ## 📚 Documentation
 
