@@ -34,6 +34,8 @@ const rootDir = join(__dirname, '..');
 
 const PACKAGES = [
     'packages/runtime-terminal',
+    'packages/terminal-zero',
+    'packages/terminal-ui',
     'packages/terminal',
 ];
 
@@ -147,12 +149,18 @@ function main() {
         ].join('\n')
     );
 
-    // Direct import of runtime-terminal as a separately-published unit.
+    // Direct imports of each layer as separately-published units: the
+    // renderer's device APIs, zero's theme engine, and the ui skin's
+    // components (which moved out of runtime-terminal in the zero+skin split).
     writeFileSync(
         join(appDir, 'src', 'runtime-check.ts'),
         [
-            "import { Input, Select, Checkbox, ProgressBar } from '@sigx/runtime-terminal';",
-            'export type _Components = [typeof Input, typeof Select, typeof Checkbox, typeof ProgressBar];',
+            "import { renderTerminal, writeStatic, setOutputTarget } from '@sigx/runtime-terminal';",
+            "import { resolveColor, setTheme, GLYPHS } from '@sigx/terminal-zero';",
+            "import { Input, Select, Checkbox, ProgressBar, Spinner, TaskList, LogPanel, Gradient, createLogStore } from '@sigx/terminal-ui';",
+            'export type _Renderer = [typeof renderTerminal, typeof writeStatic, typeof setOutputTarget];',
+            'export type _Zero = [typeof resolveColor, typeof setTheme, typeof GLYPHS];',
+            'export type _Components = [typeof Input, typeof Select, typeof Checkbox, typeof ProgressBar, typeof Spinner, typeof TaskList, typeof LogPanel, typeof Gradient, typeof createLogStore];',
             '',
         ].join('\n')
     );
