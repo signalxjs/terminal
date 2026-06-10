@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, signal, onMounted, onUnmounted } from '@sigx/terminal';
-import { resolveColor, Gradient, Shimmer, Banner, Spinner, ProgressBar, SPINNERS } from '@sigx/terminal';
+import { resolveColor, Gradient, Shimmer, Banner, Spinner, ProgressBar, SPINNERS, type SpinnerVariant } from '@sigx/terminal';
 
 export const FxDemo = component(() => {
     const state = signal({ pct: 35 });
@@ -29,7 +29,7 @@ export const FxDemo = component(() => {
             <box><Shimmer text="Thinking… resolving dependencies… almost there…" /></box>
             <box></box>
             <text color={resolveColor('dim')}>Spinner variants:</text>
-            {Object.keys(SPINNERS).map((variant) => (
+            {(Object.keys(SPINNERS) as SpinnerVariant[]).map((variant) => (
                 <Spinner variant={variant} label={variant} />
             ))}
             <box></box>

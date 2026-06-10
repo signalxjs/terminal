@@ -28,7 +28,7 @@ Or from the repo root: `pnpm showcase`.
 | Key | Action |
 | --- | --- |
 | `]` / `[` | next / previous demo |
-| `1`–`6` | jump straight to a demo |
+| `1`–`8` | jump straight to a demo |
 | `t` / `T` | cycle the active theme (obsidian → nord → gum → paper → classic) |
 | `Tab` / `Shift+Tab` | move focus between controls in the current demo |
 | `Enter` / `Space` | activate the focused control |
@@ -50,6 +50,8 @@ src/
     navigation.tsx  Tabs, StatusBar
     layout.tsx      Box, Divider, Spacer, Card
     data.tsx        Table
+    fx.tsx          Gradient, Shimmer, Banner, Spinner variants, ProgressBar variants
+    tasks.tsx       TaskList, LogPanel, createLogStore (BuildKit-style pipeline)
 ```
 
 This is the design-system layering in action: components come from

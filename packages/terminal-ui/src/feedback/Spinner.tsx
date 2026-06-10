@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, onMounted, onUnmounted, type Define } from '@sigx/runtime-core';
-import { resolveColor, GLYPHS, SPINNERS, getTick, subscribeTicker, TICK_MS } from '@sigx/terminal-zero';
+import { resolveColor, GLYPHS, SPINNERS, getTick, subscribeTicker, TICK_MS, type SpinnerVariant } from '@sigx/terminal-zero';
 
 /**
  * Animated spinner that resolves to a success check when `done` (or a danger
@@ -14,7 +14,7 @@ export const Spinner = component<
     Define.Prop<"done", boolean, false> &
     Define.Prop<"failed", boolean, false> &
     Define.Prop<"interval", number, false> &
-    Define.Prop<"variant", keyof typeof SPINNERS, false> &
+    Define.Prop<"variant", SpinnerVariant, false> &
     Define.Prop<"color", string, false>
 >(({ props }) => {
     let unsub: (() => void) | null = null;

@@ -64,14 +64,16 @@ export const GLYPHS = {
  * Spinner frame sets, selectable via the Spinner `variant` prop. All width-1
  * except `moon` (emoji — 2 cells; use where a wider glyph column is fine).
  */
-export const SPINNERS: Record<string, readonly string[]> = {
+export const SPINNERS = {
     dots: GLYPHS.spinner,
     line: ['—', '\\', '|', '/'],
     arc: ['◜', '◠', '◝', '◞', '◡', '◟'],
     circle: ['◐', '◓', '◑', '◒'],
     bounce: ['▁', '▃', '▄', '▅', '▆', '▇', '▆', '▅', '▄', '▃'],
     moon: ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'],
-};
+} as const satisfies Record<string, readonly string[]>;
+
+export type SpinnerVariant = keyof typeof SPINNERS;
 
 /** Milliseconds a button stays in its visual "pressed" state after activation. */
 export const PRESS_MS = 120;

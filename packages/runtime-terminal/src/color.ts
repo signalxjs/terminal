@@ -9,6 +9,7 @@
  */
 import { signal } from '@sigx/reactivity';
 import { getColorCode, getBackgroundColorCode } from './utils';
+import { getOutputTarget } from './output';
 
 export type ColorDepth = 'truecolor' | 'ansi256' | 'ansi16' | 'none';
 
@@ -24,8 +25,10 @@ function detectColorDepth(): ColorDepth {
         return 'truecolor'; // '3', 'true', or bare FORCE_COLOR=
     }
     if (env.NO_COLOR) return 'none';
-    // Piped / redirected output (CI, `| cat`): plain text.
-    if (!process.stdout.isTTY) return 'none';
+    // Piped / redirected output (CI, `| cat`): plain text. Checked against the
+    // active output target so an injected sink (tests, embedders) agrees with
+    // the renderer's own non-TTY behavior.
+    if (!getOutputTarget().isTTY) return 'none';
     const colorterm = env.COLORTERM;
     if (colorterm === 'truecolor' || colorterm === '24bit') return 'truecolor';
     const term = env.TERM ?? '';

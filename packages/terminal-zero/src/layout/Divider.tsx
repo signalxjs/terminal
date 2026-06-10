@@ -1,5 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, type Define } from '@sigx/runtime-core';
+import { displayWidth } from '@sigx/runtime-terminal';
 import { resolveColor } from '../theme';
 
 /** Horizontal rule of `width` cells, with an optional centered accent label. */
@@ -18,7 +19,9 @@ export const Divider = component<
         }
 
         const inner = ` ${label} `;
-        const remain = Math.max(0, width - inner.length);
+        // Measure in terminal cells, not UTF-16 units — wide glyphs (CJK,
+        // emoji) and combining marks would otherwise mis-center the label.
+        const remain = Math.max(0, width - displayWidth(inner));
         const left = Math.floor(remain / 2);
         const right = remain - left;
         return (
