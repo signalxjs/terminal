@@ -43,7 +43,7 @@
         "url": "git+https://github.com/signalxjs/terminal.git",
         "directory": "packages/terminal"
     },
-    "homepage": "https://github.com/signalxjs/terminal/tree/main/packages/terminal",
+    "homepage": "https://sigx.dev/terminal/",
     "bugs": {
         "url": "https://github.com/signalxjs/terminal/issues"
     },

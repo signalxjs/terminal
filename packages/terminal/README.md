@@ -2,13 +2,17 @@
 
 SignalX Terminal — a TUI framework with TSX support. Build interactive terminal applications using the same component model and reactive signals as SignalX.
 
+## 📚 Documentation
+
+Full guides, API reference and live examples → **<https://sigx.dev/terminal/>**
+
 ## Install
 
 ```bash
 npm install @sigx/terminal
 ```
 
-## Usage
+## Quick taste
 
 ```tsx
 /** @jsxImportSource @sigx/terminal */
@@ -31,31 +35,15 @@ const App = component(() => {
 defineApp(<App />).mount({ clearConsole: true });
 ```
 
-## Built-in Elements
+Built-in elements (`<box>`, `<text>`, `<br>`), components (`Input`, `Button`,
+`Select`, `Checkbox`, `ProgressBar`) and focus/keyboard utilities are documented
+in full on the docs site → <https://sigx.dev/terminal/>.
 
-- `<box>` — Container with optional borders (`single`, `double`, `rounded`), colors, shadows, and labels
-- `<text>` — Text with ANSI color support
-- `<br>` — Line break
+## Part of SignalX
 
-## Components
-
-| Component | Description |
-|---|---|
-| `Input` | Text input with model binding |
-| `Button` | Clickable button |
-| `Select` | Option list with keyboard navigation |
-| `Checkbox` | Toggle checkbox |
-| `ProgressBar` | Visual progress indicator |
-
-## Utilities
-
-- `onKey(handler)` — Subscribe to keyboard events
-- `focusNext()` / `focusPrev()` — Programmatic focus management
-
-## Documentation
-
-Full documentation and guides are available at the [SignalX repository](https://github.com/signalxjs/core).
+- [`sigx`](https://sigx.dev/core/) — reactivity, runtime-core, DOM renderer, SSR, Vite plugin.
+- [`@sigx/cli`](https://sigx.dev/cli/) — the `sigx` CLI and `create-sigx` scaffolder.
 
 ## License
 
-[MIT](https://github.com/signalxjs/core/blob/main/LICENSE)
+[MIT](https://github.com/signalxjs/terminal/blob/main/LICENSE)

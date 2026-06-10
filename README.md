@@ -4,9 +4,13 @@
 [![license](https://img.shields.io/npm/l/@sigx/terminal.svg)](./LICENSE)
 [![ci](https://github.com/signalxjs/terminal/actions/workflows/ci.yml/badge.svg)](https://github.com/signalxjs/terminal/actions/workflows/ci.yml)
 
-**SignalX Terminal** — a TUI framework with TSX support built on the [SignalX](https://github.com/signalxjs/core) reactivity system.
+**SignalX Terminal** — a TUI framework with TSX support built on the [SignalX](https://sigx.dev/core/) reactivity system.
 
 > 🚧 Early public release (`0.4.x`). API is small and stabilising.
+
+## 📚 Documentation
+
+Full guides, API reference and live examples → **<https://sigx.dev/terminal/>**
 
 ## Packages
 
@@ -40,10 +44,10 @@ const App = component(() => {
 defineApp(App).mount();
 ```
 
-## Related repos
+## Part of SignalX
 
-- [`signalxjs/core`](https://github.com/signalxjs/core) — reactivity, runtime-core, DOM renderer, SSR, Vite plugin.
-- [`signalxjs/cli`](https://github.com/signalxjs/cli) — the `sigx` CLI and `create-sigx` scaffolder.
+- [`sigx`](https://sigx.dev/core/) — reactivity, runtime-core, DOM renderer, SSR, Vite plugin.
+- [`@sigx/cli`](https://sigx.dev/cli/) — the `sigx` CLI and `create-sigx` scaffolder.
 
 ## License
 
