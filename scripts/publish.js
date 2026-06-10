@@ -37,6 +37,8 @@ const rootDir = join(__dirname, '..');
 // from there.
 const PACKAGES = [
     'packages/runtime-terminal',
+    'packages/terminal-zero',
+    'packages/terminal-ui',
     'packages/terminal',
 ];
 

@@ -1,7 +1,8 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, onMounted, onUnmounted, type Define } from '@sigx/runtime-core';
-import { onKey } from '../index';
-import { registerFocusable, unregisterFocusable, focusState, focus } from '../focus';
+import {
+    onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor, GLYPHS,
+} from '@sigx/terminal-zero';
 
 export interface SelectOption<T = string> {
     label: string;
@@ -19,8 +20,7 @@ export const Select = component<
     Define.Event<"submit", string>
 >(({ props, emit }) => {
     const id = Math.random().toString(36).slice(2);
-    let isReady = false; // Prevent immediate submit after mount
-
+    let isReady = false;
     const isFocused = () => focusState.activeId === id;
 
     const getCurrentIndex = () => {
@@ -30,34 +30,26 @@ export const Select = component<
     };
 
     const handleKey = (key: string) => {
-        if (!isFocused()) return;
-        if (!isReady) return; // Ignore keys until component is ready
-
+        if (!isFocused() || !isReady) return;
         const options = props.options || [];
         if (options.length === 0) return;
-
         const currentIndex = getCurrentIndex();
 
-        // Arrow up or 'k'
-        if (key === '\x1B[A' || key === 'k') {
+        if (key === '\x1B[A' || key === 'k') { // up
             const newIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
             const newValue = options[newIndex].value;
             if (props.model) props.model.value = newValue;
             emit('change', newValue);
             return;
         }
-
-        // Arrow down or 'j'
-        if (key === '\x1B[B' || key === 'j') {
+        if (key === '\x1B[B' || key === 'j') { // down
             const newIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
             const newValue = options[newIndex].value;
             if (props.model) props.model.value = newValue;
             emit('change', newValue);
             return;
         }
-
-        // Enter to submit (terminals may send \r or \n)
-        if (key === '\r' || key === '\n') {
+        if (key === '\r' || key === '\n') { // submit
             emit('submit', props.model?.value || options[0]?.value || '');
             return;
         }
@@ -67,11 +59,8 @@ export const Select = component<
 
     onMounted(() => {
         registerFocusable(id);
-        if (props.autofocus) {
-            focus(id);
-        }
+        if (props.autofocus) focus(id);
         keyCleanup = onKey(handleKey);
-        // Small delay to prevent immediate submit from previous Enter key
         setTimeout(() => { isReady = true; }, 50);
     });
 
@@ -84,32 +73,29 @@ export const Select = component<
         const options = props.options || [];
         const focused = isFocused();
         const currentValue = props.model?.value || options[0]?.value || '';
-        const label = props.label;
         const selectedOption = options.find(o => o.value === currentValue);
 
-        // Render options
         const optionElements = options.map((option) => {
             const isSelected = option.value === currentValue;
-            const indicator = isSelected ? '❯' : ' ';
-            const color = isSelected ? 'cyan' : 'white';
-
+            const indicator = isSelected ? GLYPHS.cursor : ' ';
+            const rowColor = resolveColor(isSelected ? 'accent' : 'fg');
             return (
                 <box>
-                    <text color={color}>{indicator} {option.label}</text>
+                    <text color={resolveColor(isSelected ? 'accent' : 'faint')}>{indicator} </text>
+                    <text color={rowColor}>{option.label}</text>
                 </box>
             );
         });
 
-        // Description shown below the box (common pattern in CLI tools)
         const descriptionElement = props.showDescription && selectedOption?.description ? (
             <box>
-                <text color="#666666">  ↳ {selectedOption.description}</text>
+                <text color={resolveColor('dim')}>  ↳ {selectedOption.description}</text>
             </box>
         ) : null;
 
         return (
             <box>
-                <box border="single" borderColor={focused ? 'green' : 'white'} label={label}>
+                <box border="rounded" borderColor={resolveColor(focused ? 'accent' : 'line')} label={props.label} labelColor={resolveColor(focused ? 'accent' : 'dim')}>
                     {optionElements}
                 </box>
                 {descriptionElement}

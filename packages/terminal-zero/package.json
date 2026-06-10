@@ -1,0 +1,71 @@
+{
+    "name": "@sigx/terminal-zero",
+    "version": "0.4.4",
+    "description": "Headless, design-system-neutral foundation for SignalX terminal UIs — token contract, theme engine, and layout primitives",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./contract": {
+            "import": "./dist/contract.js",
+            "types": "./dist/contract.d.ts"
+        },
+        "./theme": {
+            "import": "./dist/theme/index.js",
+            "types": "./dist/theme/index.d.ts"
+        },
+        "./shared": {
+            "import": "./dist/shared/index.js",
+            "types": "./dist/shared/index.d.ts"
+        },
+        "./layout": {
+            "import": "./dist/layout/index.js",
+            "types": "./dist/layout/index.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "dev": "vite build --watch"
+    },
+    "keywords": [
+        "sigx",
+        "signalx",
+        "terminal",
+        "tui",
+        "cli",
+        "design-system",
+        "theme"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/terminal.git",
+        "directory": "packages/terminal-zero"
+    },
+    "homepage": "https://github.com/signalxjs/terminal/tree/main/packages/terminal-zero",
+    "bugs": {
+        "url": "https://github.com/signalxjs/terminal/issues"
+    },
+    "dependencies": {
+        "@sigx/reactivity": "^0.4.9",
+        "@sigx/runtime-core": "^0.4.9",
+        "@sigx/runtime-terminal": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/vite": "^0.4.7",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
