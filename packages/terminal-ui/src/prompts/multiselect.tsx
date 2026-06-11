@@ -1,11 +1,8 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, signal, onMounted, onUnmounted } from '@sigx/runtime-core';
-import { onKey, resolveColor, GLYPHS, READY_DELAY_MS } from '@sigx/terminal-zero';
-import { CANCEL } from './cancel';
-import { runPrompt } from './runPrompt';
+import { onKey, resolveColor, GLYPHS, READY_DELAY_MS, CANCEL, runPrompt, isEnter, isEsc, isCtrlC, isUp, isDown, isSpace } from '@sigx/terminal-zero';
 import { promptFrame, promptRow } from './PromptShell';
 import { optionLabel, type PromptOption } from './select';
-import { isEnter, isEsc, isCtrlC, isUp, isDown, isSpace } from './keys';
 
 export interface MultiSelectPromptOptions<T> {
     message: string;

@@ -9,8 +9,9 @@
  * renderer is a singleton, so two live prompts can never race it.
  */
 import {
-    renderTerminal, getOutputTarget, writeStatic, printStatic, resolveColor, resolveFg,
-} from '@sigx/terminal-zero';
+    renderTerminal, getOutputTarget, writeStatic, printStatic, resolveFg,
+} from '@sigx/runtime-terminal';
+import { resolveColor } from '../theme';
 import { CANCEL } from './cancel';
 
 let chain: Promise<unknown> = Promise.resolve();
@@ -33,17 +34,17 @@ export function tokenSgr(token: string): string {
 }
 
 /** Wrap text in a token color, with default-fg restore (never a full reset). */
-export function paint(text: string, token: string): string {
+export function paintToken(text: string, token: string): string {
     const code = tokenSgr(token);
     return code ? `${code}${text}\x1b[39m` : text;
 }
 
 export function summaryLine(kind: 'done' | 'cancel', message: string, display?: string): string {
     if (kind === 'cancel') {
-        return `${paint('■', 'danger')} ${message} ${paint('· cancelled', 'dim')}`;
+        return `${paintToken('■', 'danger')} ${message} ${paintToken('· cancelled', 'dim')}`;
     }
-    const tail = display !== undefined && display !== '' ? ` ${paint(`· ${display}`, 'dim')}` : '';
-    return `${paint('◇', 'success')} ${message}${tail}`;
+    const tail = display !== undefined && display !== '' ? ` ${paintToken(`· ${display}`, 'dim')}` : '';
+    return `${paintToken('◇', 'success')} ${message}${tail}`;
 }
 
 /**

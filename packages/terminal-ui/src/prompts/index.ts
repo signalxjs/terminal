@@ -4,16 +4,15 @@
  * collapses into a permanent `◇ message · answer` line — a finished wizard
  * reads as a tidy transcript in scrollback.
  */
-export { CANCEL, isCancel } from './cancel';
+export { CANCEL, isCancel, __setInteractiveOverride } from '@sigx/terminal-zero';
 export { text, password, type TextOptions } from './text';
 export { select, type SelectOptions, type PromptOption } from './select';
 export { multiselect, type MultiSelectPromptOptions } from './multiselect';
 export { confirm, type ConfirmOptions } from './confirm';
 export { intro, outro, note, cancel } from './statics';
 export { spinner, type SpinnerHandle } from './spinner';
-export { __setInteractiveOverride } from './runPrompt';
 
-import { CANCEL, isCancel } from './cancel';
+import { CANCEL, isCancel } from '@sigx/terminal-zero';
 import { text, password } from './text';
 import { select } from './select';
 import { multiselect } from './multiselect';

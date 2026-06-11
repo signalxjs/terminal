@@ -8,7 +8,8 @@ export default defineLibConfig({
         'contract': 'src/contract.ts',
         'theme/index': 'src/theme/index.ts',
         'shared/index': 'src/shared/index.ts',
-        'layout/index': 'src/layout/index.ts'
+        'layout/index': 'src/layout/index.ts',
+        'prompts/index': 'src/prompts/index.ts'
     },
     external: [/@sigx\/.*/, 'node:process', 'node:readline', 'node:tty'],
     platform: 'node',
