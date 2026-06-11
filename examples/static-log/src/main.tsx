@@ -7,7 +7,7 @@
 // into history above it, two ways: explicitly via printStatic(), and via a
 // raw console.log() that the inline mount auto-routes through static output
 // (so library noise can't corrupt the frame).
-import { defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal, printStatic } from '@sigx/terminal';
+import { defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal, printStatic, Text } from '@sigx/terminal';
 
 const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const STEPS = 6;
@@ -38,8 +38,8 @@ const Runner = component(() => {
     });
 
     return () => state.done
-        ? <text color="green">✔ all {String(STEPS)} steps complete</text>
-        : <text color="cyan">{FRAMES[state.frame]} working on step {String(state.step)}…</text>;
+        ? <Text color="success">✔ all {String(STEPS)} steps complete</Text>
+        : <Text color="info">{FRAMES[state.frame]} working on step {String(state.step)}…</Text>;
 });
 
 defineApp(<Runner />).mount({ mode: 'inline' }, terminalMount);

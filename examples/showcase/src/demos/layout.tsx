@@ -1,14 +1,14 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, Text, Heading } from '@sigx/terminal';
+import { component, Text, Heading, Col } from '@sigx/terminal';
 import { Box, Row, Divider, Spacer, Card } from '@sigx/terminal';
 
 export const LayoutDemo = component(() => {
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Layout primitives from terminal-zero + the Card from terminal-ui.</Text>
             <Spacer size={1} />
             <Heading>Typography</Heading>
-            <box>
+            <Col>
                 <Text color="dim">Inline spans compose: </Text>
                 <Text color="accent" bold>bold accent</Text>
                 <Text color="fg">, </Text>
@@ -22,7 +22,7 @@ export const LayoutDemo = component(() => {
                 <Text color="fg"> and </Text>
                 <Text inverse>inverse</Text>
                 <Text color="fg">.</Text>
-            </box>
+            </Col>
             <Spacer size={1} />
             <Box label="Themed Box" padX={1}>
                 <Text color="fg">A themed Box defaults to a rounded line border.</Text>
@@ -57,6 +57,6 @@ export const LayoutDemo = component(() => {
                     <Text color="dim">align="bottom"</Text>
                 </Box>
             </Row>
-        </box>
+        </Col>
     );
 }, { name: 'LayoutDemo' });

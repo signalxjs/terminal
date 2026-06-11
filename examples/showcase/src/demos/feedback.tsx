@@ -1,5 +1,5 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { ProgressBar, Spinner, Badge } from '@sigx/terminal';
 
 export const FeedbackDemo = component(() => {
@@ -16,7 +16,7 @@ export const FeedbackDemo = component(() => {
     onUnmounted(() => { if (timer) clearInterval(timer); });
 
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Live progress + an animated spinner.</Text>
             <Spacer size={1} />
             <ProgressBar value={state.pct} max={100} width={28} />
@@ -29,6 +29,6 @@ export const FeedbackDemo = component(() => {
             <Badge label="bracket" variant="bracket" />
             <Badge label="error" variant="solid" color="danger" />
             <Badge label="ok" variant="solid" color="success" />
-        </box>
+        </Col>
     );
 }, { name: 'FeedbackDemo' });

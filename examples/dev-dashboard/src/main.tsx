@@ -10,7 +10,7 @@
 import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
     Tabs, Table, KeyHints, QRCode, LogView, Row, Gradient, Badge,
-    createLogStore, onKey, getTerminalSize, Text, Spacer } from '@sigx/terminal';
+    createLogStore, onKey, getTerminalSize, Text, Spacer, Col } from '@sigx/terminal';
 
 const BUNDLE_URL = 'http://192.168.1.10:8788/main.lynx.bundle?v=demo';
 
@@ -51,9 +51,9 @@ const Dashboard = component(() => {
     return () => {
         const logHeight = Math.max(6, getTerminalSize().rows - 12);
         return (
-            <box>
-                <box><Gradient text="sigx dev · my-lynx-app" preset="sigx" /></box>
-                <box><Text color="dim">{BUNDLE_URL}</Text></box>
+            <Col>
+                <Col><Gradient text="sigx dev · my-lynx-app" preset="sigx" /></Col>
+                <Col><Text color="dim">{BUNDLE_URL}</Text></Col>
                 <Spacer size={1} />
                 <Tabs
                     model={tab}
@@ -68,7 +68,7 @@ const Dashboard = component(() => {
                 {tab.value === 'devices' && (
                     <Row gap={4}>
                         <QRCode text={BUNDLE_URL} />
-                        <box>
+                        <Col>
                             <Table
                                 columns={['Device', 'Platform', 'Status']}
                                 rows={[
@@ -79,17 +79,17 @@ const Dashboard = component(() => {
                             />
                             <Spacer size={1} />
                             <Badge label="2 devices live" variant="solid" color="success" />
-                        </box>
+                        </Col>
                     </Row>
                 )}
                 {tab.value === 'logs' && (
                     <LogView store={store} height={logHeight} title=" device logs " />
                 )}
                 {tab.value === 'connect' && (
-                    <box>
+                    <Col>
                         <Text color="dim">Scan with sigx-lynx-go:</Text>
                         <QRCode text={BUNDLE_URL} />
-                    </box>
+                    </Col>
                 )}
                 <Spacer size={1} />
                 <KeyHints hints={[
@@ -99,7 +99,7 @@ const Dashboard = component(() => {
                     { key: '↑/↓', label: 'scroll logs' },
                     { key: 'q', label: 'quit' },
                 ]} />
-            </box>
+            </Col>
         );
     };
 }, { name: 'Dashboard' });

@@ -7,7 +7,7 @@
 // intact. It exits by itself after 10 ticks (or Ctrl+C), leaving the final
 // frame in scrollback with the cursor below it. Pipe it (`| cat`) to see the
 // non-TTY fallback: a single plain-text final frame.
-import { defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal } from '@sigx/terminal';
+import { defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal, Box, Text } from '@sigx/terminal';
 
 const Counter = component(() => {
     const state = signal({ n: 0 });
@@ -25,11 +25,11 @@ const Counter = component(() => {
     onUnmounted(() => { if (timer) clearInterval(timer); });
 
     return () => (
-        <box border="rounded" padX={1} label="inline counter">
-            <text color="cyan">tick {String(state.n)} / 10</text>
+        <Box border="rounded" padX={1} label="inline counter">
+            <Text color="info">tick {String(state.n)} / 10</Text>
             <br />
-            <text color="gray">Ctrl+C to quit early — the frame persists either way</text>
-        </box>
+            <Text color="dim">Ctrl+C to quit early — the frame persists either way</Text>
+        </Box>
     );
 });
 

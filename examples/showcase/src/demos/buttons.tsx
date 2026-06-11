@@ -1,11 +1,11 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, Text, Spacer } from '@sigx/terminal';
+import { component, signal, Text, Spacer, Col } from '@sigx/terminal';
 import { Button } from '@sigx/terminal';
 
 export const ButtonsDemo = component(() => {
     const state = signal({ clicks: 0 });
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Press Tab to focus a button, then Enter or Space to click.</Text>
             <Spacer size={1} />
             <Button label="Primary Action" onClick={() => { state.clicks++; }} />
@@ -14,6 +14,6 @@ export const ButtonsDemo = component(() => {
             <Spacer size={1} />
             <Text color="fg">Total clicks: </Text>
             <Text color="success">{String(state.clicks)}</Text>
-        </box>
+        </Col>
     );
 }, { name: 'ButtonsDemo' });

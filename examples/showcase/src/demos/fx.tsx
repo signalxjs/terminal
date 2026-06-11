@@ -1,5 +1,5 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { Gradient, Shimmer, Banner, Spinner, ProgressBar, SPINNERS, type SpinnerVariant } from '@sigx/terminal';
 
 export const FxDemo = component(() => {
@@ -15,18 +15,18 @@ export const FxDemo = component(() => {
     onUnmounted(() => { if (timer) clearInterval(timer); });
 
     return () => (
-        <box>
+        <Col>
             <Banner text="SIGX" preset="sigx" />
             <Spacer size={1} />
             <Text color="dim">Gradient presets (sigx follows the theme — press t):</Text>
-            <box><Gradient text="sigx — accent → info → success" preset="sigx" /></box>
-            <box><Gradient text="rainbow — all the colors, all the time" preset="rainbow" /></box>
-            <box><Gradient text="sunset — warm and easy" preset="sunset" /></box>
-            <box><Gradient text="ocean — cool and calm" preset="ocean" /></box>
-            <box><Gradient text="fire — maximum hype" preset="fire" /></box>
+            <Col><Gradient text="sigx — accent → info → success" preset="sigx" /></Col>
+            <Col><Gradient text="rainbow — all the colors, all the time" preset="rainbow" /></Col>
+            <Col><Gradient text="sunset — warm and easy" preset="sunset" /></Col>
+            <Col><Gradient text="ocean — cool and calm" preset="ocean" /></Col>
+            <Col><Gradient text="fire — maximum hype" preset="fire" /></Col>
             <Spacer size={1} />
-            <box><Gradient text="★ animated rainbow scrolling through this line ★" preset="rainbow" animate /></box>
-            <box><Shimmer text="Thinking… resolving dependencies… almost there…" /></box>
+            <Col><Gradient text="★ animated rainbow scrolling through this line ★" preset="rainbow" animate /></Col>
+            <Col><Shimmer text="Thinking… resolving dependencies… almost there…" /></Col>
             <Spacer size={1} />
             <Text color="dim">Spinner variants:</Text>
             {(Object.keys(SPINNERS) as SpinnerVariant[]).map((variant) => (
@@ -34,9 +34,9 @@ export const FxDemo = component(() => {
             ))}
             <Spacer size={1} />
             <Text color="dim">ProgressBar variants (solid / gradient / rainbow, smooth edges):</Text>
-            <box><ProgressBar value={state.pct} width={32} /></box>
-            <box><ProgressBar value={state.pct} width={32} variant="gradient" smooth /></box>
-            <box><ProgressBar value={state.pct} width={32} variant="rainbow" smooth /></box>
-        </box>
+            <Col><ProgressBar value={state.pct} width={32} /></Col>
+            <Col><ProgressBar value={state.pct} width={32} variant="gradient" smooth /></Col>
+            <Col><ProgressBar value={state.pct} width={32} variant="rainbow" smooth /></Col>
+        </Col>
     );
 }, { name: 'FxDemo' });

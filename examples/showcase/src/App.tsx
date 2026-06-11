@@ -1,5 +1,5 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { onKey, StatusBar, Box, setTheme, listThemes } from '@sigx/terminal';
 import { demos } from './catalog';
 
@@ -51,11 +51,11 @@ export const App = component(() => {
         });
 
         return (
-            <box>
+            <Col>
                 <Box border="thick" borderColor="accent" padX={1}>
                     <Text color="accent">SigX Terminal — Component Showcase</Text>
                 </Box>
-                <box>{strip}</box>
+                <Col>{strip}</Col>
                 <Spacer size={1} />
                 <Box border="rounded" borderColor="line" label={active.title} labelColor="accent" padX={1} dropShadow={true}>
                     <Demo />
@@ -68,7 +68,7 @@ export const App = component(() => {
                     { key: 't', label: `theme: ${state.theme}` },
                     { key: '^C', label: 'quit' },
                 ]} />
-            </box>
+            </Col>
         );
     };
 }, { name: 'App' });
