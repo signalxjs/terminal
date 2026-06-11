@@ -99,15 +99,19 @@ export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugi
         config(_userConfig, env) {
             command = env.command;
             if (env.command !== 'serve') return;
+            // The HMR runtime usually lives outside the app root (next to
+            // this plugin). The module runner's fetches don't go through the
+            // HTTP fs allowlist, but a browser environment served from the
+            // same config would — allow exactly the runtime's directory
+            // rather than disabling strict mode.
+            const isAbsoluteRuntime = path.isAbsolute(hmrRuntime) || /^[A-Za-z]:[\\/]/.test(hmrRuntime);
             return {
                 ssr: {
                     external: [...SIGX_EXTERNALS, ...(options.external ?? [])],
                 },
-                server: {
-                    // The runner imports straight from the fs (including the
-                    // HMR runtime, which lives outside the app root).
-                    fs: { strict: false },
-                },
+                ...(isAbsoluteRuntime
+                    ? { server: { fs: { allow: [path.dirname(hmrRuntime)] } } }
+                    : {}),
             };
         },
 
