@@ -6,16 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-12
+
+First lockstep release of the four-package design system. New packages: `@sigx/terminal-zero` (headless foundation) and `@sigx/terminal-ui` (SigX-tui skin).
+
 ### Added
 
-- `runtime-terminal`: layered key dispatch — `onKey(handler, { layer })` with `'overlay' | 'control' | 'view' | 'global'` layers; a handler returning strictly `true` consumes the key and stops dispatch. Built-in Tab/Shift+Tab focus cycling moved into the first `'global'` handler so overlays/controls can consume Tab first. Bare `onKey(handler)` is unchanged (default layer `'control'`, void return cascades).
-- `terminal-zero`: headless `textBuffer` (soft-wrap layout + code-point cursor math for multi-line editors, wide-glyph aware) and `createViewStack` (reactive push/pop navigation with an Esc-pop pattern).
-- `terminal-ui`: `TextArea` (growing multi-line input — wraps, grows to `maxRows`, movable block cursor, Enter submits, `\`+Enter / Ctrl+J newline), `SuggestionList` (overlay intellisense consuming only navigation keys), `PixelArt` / `renderPixelArt` (half-block pixel logos).
-- `examples/claude-shell` (`pnpm claude-shell`): assistant-shell demo — pixel logo + scrollback transcript, `/` command intellisense, Esc-poppable model picker.
-
-### Changed
-
-- `terminal-ui` `Input` ignores all control bytes (a cascading Tab could previously be appended as a literal character).
+- **Component library split**: `terminal-zero` (token contract, theme engine + `resolveColor`, glyphs/focus, layout primitives) and `terminal-ui` (themed components in category folders, 5 built-in themes, default obsidian). Components moved out of `runtime-terminal` and reskinned to tokens.
+- **Render modes** (`runtime-terminal`): `mode: 'inline' | 'fullscreen'` — inline live region with persisted final frame (and `persistOnExit: false` for one-shot UIs), alt-screen fullscreen with exit-signal safety, `writeStatic`/`printStatic` transcript output with console patching, non-TTY plain-text fallback, `FORCE_COLOR`/`NO_COLOR`/TTY-aware color depth, SIGWINCH resize with reactive `getTerminalSize()`, injectable `OutputTarget`, `dispatchKey`, synchronized-output frames (DEC 2026) with atomic static bursts.
+- **Layered key dispatch**: `onKey(handler, { layer })` with `overlay | control | view | global` layers; strictly-`true` returns consume; Tab/Shift+Tab focus cycling became the first global handler.
+- **Typography & layout**: `Text` (inline token-aware span with `bold`/`faint`/`italic`/`underline`/`lineThrough`/`inverse`), `Heading`, renderer SGR text attributes, `Row` (real horizontal layout) with `start|center|end` align, `Col` `gap`, `Spacer` fix.
+- **Prompt kit**: imperative `text`/`password`/`select`/`multiselect`/`confirm` + `intro`/`outro`/`note`/`cancel`/`spinner`, collapse-to-`◇`-transcript, Esc/Ctrl+C → `CANCEL` symbol (`isCancel`), non-TTY initialValue fallback; headless engine in `terminal-zero/prompts`.
+- **Components**: `TextArea` (growing multi-line editor on the headless `textBuffer`), `SuggestionList`, `MultiSelect` (group headers), `Confirm`, `KeyHints`, `LogPanel`, scrollable `LogView`, `TaskList` + `createLogStore`/`collapseTask`, `QRCode` (+ `generateQR`), `PixelArt`, `Gradient`/`Shimmer`/`Banner` fx, `Spinner` variants, `ProgressBar` variants, shared animation ticker, `createViewStack`.
+- **Examples**: showcase (FX/Tasks/Typography pages), inline-counter, static-log, build-sim, create-wizard, dev-dashboard, claude-shell — all written purely against the component layer.
+- **Tooling**: lockstep version enforcement (`pnpm version:check`, bump/publish guards).
 
 ## [0.4.4] - 2026-05-13
 
