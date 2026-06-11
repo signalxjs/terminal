@@ -31,10 +31,13 @@ export function captureOutput(opts: { columns?: number; rows?: number; isTTY?: b
         isTTY: opts.isTTY ?? true,
     };
     setOutputTarget(target);
+    // Frames are wrapped in synchronized-update markers; strip them in
+    // output() so content assertions stay focused.
+    const stripSync = (s: string) => s.split('\x1b[?2026h').join('').split('\x1b[?2026l').join('');
     return {
         target,
         chunks,
-        output: () => chunks.join(''),
+        output: () => stripSync(chunks.join('')),
         clear: () => { chunks.length = 0; },
     };
 }

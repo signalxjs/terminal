@@ -28,8 +28,9 @@ describe('inline rendering', () => {
         expect(out).not.toContain('\x1B[2J');
         expect(out).not.toContain('\x1B[3J');
         expect(out).toContain('hello\x1B[K\x1B[J');
-        // The frame ends without a trailing newline (cursor rests on the last line).
-        expect(cap.chunks[cap.chunks.length - 1].endsWith('\x1B[J')).toBe(true);
+        // The frame ends without a trailing newline (cursor rests on the last
+        // line); the raw chunk closes with the synchronized-update end marker.
+        expect(cap.chunks[cap.chunks.length - 1].endsWith('\x1B[J' + '\x1b[?2026l')).toBe(true);
     });
 
     it('repaints by moving up over the previous frame', () => {

@@ -14,6 +14,13 @@ export interface Capture {
     clear(): void;
 }
 
+// Synchronized-update markers wrap every frame; `output()` strips them so
+// byte-exact assertions stay focused on the frame content. Raw chunks keep
+// them (see the atomicity tests).
+export const SYNC_START = '\x1b[?2026h';
+export const SYNC_END = '\x1b[?2026l';
+const stripSync = (s: string) => s.split(SYNC_START).join('').split(SYNC_END).join('');
+
 export function captureOutput(opts: { columns?: number; rows?: number; isTTY?: boolean } = {}): Capture {
     const chunks: string[] = [];
     const target: OutputTarget = {
@@ -26,7 +33,7 @@ export function captureOutput(opts: { columns?: number; rows?: number; isTTY?: b
     return {
         target,
         chunks,
-        output: () => chunks.join(''),
+        output: () => stripSync(chunks.join('')),
         clear: () => { chunks.length = 0; },
     };
 }

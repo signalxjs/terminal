@@ -164,17 +164,14 @@ let lastFrameLines: string[] = [];
 // after leaving it.
 let pendingStatic: string[] = [];
 
-function flushRender() {
-    if (!rootNode || tornDown) return;
+// DEC 2026 synchronized-update markers: the terminal buffers everything
+// between them and paints it atomically, so multi-part updates (erase +
+// repaint) never flash. Terminals without support ignore them.
+const SYNC_START = '\x1b[?2026h';
+const SYNC_END = '\x1b[?2026l';
 
-    let lines = renderNodeToLines(rootNode);
-
-    if (nonTTY) {
-        // Plain text, no canvas backing — written once at teardown.
-        lastFrameLines = lines;
-        return;
-    }
-
+/** Render the tree to width-truncated, canvas-backed lines (TTY modes). */
+function prepareLines(): string[] {
     const target = getOutputTarget();
     const cols = target.columns;
     const bg = canvasEnabled && screenBgColor ? resolveBg(screenBgColor) : '';
@@ -185,7 +182,7 @@ function flushRender() {
     // backing (the pad math needs the final visible width). Inline needs it
     // for the cursor-up arithmetic; fullscreen needs it because a soft-wrapped
     // line (e.g. a wide <row>) would shear every following row of the frame.
-    lines = lines.map((l) => truncateToWidth(l, cols));
+    let lines = renderNodeToLines(rootNode!).map((l) => truncateToWidth(l, cols));
 
     if (base) {
         // Back each rendered line with the themed canvas: pad to the terminal
@@ -197,26 +194,19 @@ function flushRender() {
             return base + body + base + ' '.repeat(padN) + reset;
         });
     }
+    return lines;
+}
 
-    if (mode === 'fullscreen') {
-        let out = '\x1B[H';
-        if (base) {
-            out += lines.join('\n');
-            // App owns the screen: fill the empty rows below with the theme bg.
-            const rows = target.rows;
-            for (let i = lines.length; i < rows; i++) {
-                out += '\n' + bg + ' '.repeat(cols) + '\x1b[0m';
-            }
-        } else {
-            out += lines.join('\x1B[K\n') + '\x1B[K';
-        }
-        target.write(out + '\x1B[J');
-        return;
-    }
+/**
+ * Compose the inline live-region repaint (preamble + body + erase-below) as
+ * a string, updating prevFrameHeight. Kept write-free so callers can fuse it
+ * with other output into ONE atomic write (see writeStatic).
+ */
+function composeInlineFrame(): string {
+    const target = getOutputTarget();
+    let lines = prepareLines();
 
-    // Inline: repaint only the live region (lines already width-truncated
-    // above); clamp tall frames to their bottom rows (the active part of a
-    // live CLI UI).
+    // Clamp tall frames to their bottom rows (the active part of a live UI).
     const rows = target.rows;
     if (lines.length > rows) lines = lines.slice(-rows);
 
@@ -228,8 +218,41 @@ function flushRender() {
     // next repaint's cursor-up count is exact and [J below never reaches
     // scrollback.
     out += lines.map((l) => l + '\x1B[K').join('\n');
-    target.write(out + '\x1B[J');
     prevFrameHeight = lines.length;
+    return out + '\x1B[J';
+}
+
+function flushRender() {
+    if (!rootNode || tornDown) return;
+
+    if (nonTTY) {
+        // Plain text, no canvas backing — written once at teardown.
+        lastFrameLines = renderNodeToLines(rootNode);
+        return;
+    }
+
+    const target = getOutputTarget();
+
+    if (mode === 'fullscreen') {
+        const cols = target.columns;
+        const bg = canvasEnabled && screenBgColor ? resolveBg(screenBgColor) : '';
+        const lines = prepareLines();
+        let out = '\x1B[H';
+        if (bg || (canvasEnabled && screenFgColor)) {
+            out += lines.join('\n');
+            // App owns the screen: fill the empty rows below with the theme bg.
+            const rows = target.rows;
+            for (let i = lines.length; i < rows; i++) {
+                out += '\n' + bg + ' '.repeat(cols) + '\x1b[0m';
+            }
+        } else {
+            out += lines.join('\x1B[K\n') + '\x1B[K';
+        }
+        target.write(SYNC_START + out + '\x1B[J' + SYNC_END);
+        return;
+    }
+
+    target.write(SYNC_START + composeInlineFrame() + SYNC_END);
 }
 
 /**
@@ -269,9 +292,12 @@ export function writeStatic(text: string): void {
     }
     out += '\x1B[J'; // erase the live region
     out += lines.map((l) => l + '\x1B[K\n').join('');
-    target.write(out);
     prevFrameHeight = 0;
-    flushRender(); // repaint the live region below the new static lines
+    // Fuse erase + static lines + region repaint into ONE write, wrapped in
+    // synchronized-update markers: two separate writes let the terminal paint
+    // the intermediate erased state — a visible flash of the live region on
+    // every streamed transcript line.
+    target.write(SYNC_START + out + composeInlineFrame() + SYNC_END);
 }
 
 /** Alias for {@link writeStatic}. */
