@@ -1,12 +1,12 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component } from '@sigx/terminal';
-import { Table, resolveColor } from '@sigx/terminal';
+import { component, Text, Spacer } from '@sigx/terminal';
+import { Table } from '@sigx/terminal';
 
 export const DataDemo = component(() => {
     return () => (
         <box>
-            <text color={resolveColor('dim')}>A text grid with an accent header and auto-sized columns.</text>
-            <box></box>
+            <Text color="dim">A text grid with an accent header and auto-sized columns.</Text>
+            <Spacer size={1} />
             <Table
                 columns={['Package', 'Layer', 'Version']}
                 rows={[

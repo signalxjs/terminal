@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted } from '@sigx/terminal';
-import { onKey, StatusBar, resolveColor, setTheme, listThemes } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { onKey, StatusBar, Box, setTheme, listThemes } from '@sigx/terminal';
 import { demos } from './catalog';
 
 export const App = component(() => {
@@ -44,24 +44,23 @@ export const App = component(() => {
         const strip = demos.map((d, i) => {
             const on = i === state.demo;
             return (
-                <text
-                    backgroundColor={resolveColor(on ? 'accent' : 'accentSoft')}
-                    color={resolveColor(on ? 'accentText' : 'dim')}
-                > {String(i + 1)} {d.title} </text>
+                <Text bg={on ? 'accent' : 'accentSoft'} color={on ? 'accentText' : 'dim'}>
+                    {' '}{String(i + 1)} {d.title}{' '}
+                </Text>
             );
         });
 
         return (
             <box>
-                <box border="thick" borderColor={resolveColor('accent')} padX={1}>
-                    <text color={resolveColor('accent')}>SigX Terminal — Component Showcase</text>
-                </box>
+                <Box border="thick" borderColor="accent" padX={1}>
+                    <Text color="accent">SigX Terminal — Component Showcase</Text>
+                </Box>
                 <box>{strip}</box>
-                <box></box>
-                <box border="rounded" borderColor={resolveColor('line')} label={active.title} labelColor={resolveColor('accent')} padX={1} dropShadow={true} shadowColor={resolveColor('shadow')}>
+                <Spacer size={1} />
+                <Box border="rounded" borderColor="line" label={active.title} labelColor="accent" padX={1} dropShadow={true}>
                     <Demo />
-                </box>
-                <box></box>
+                </Box>
+                <Spacer size={1} />
                 <StatusBar items={[
                     { key: '[ ]', label: 'prev / next' },
                     { key: `1-${demos.length}`, label: 'jump' },

@@ -2,7 +2,7 @@ import { createRenderer, RendererOptions, setDefaultMount } from '@sigx/runtime-
 import { signal } from '@sigx/reactivity';
 import { focusNext, focusPrev } from './focus';
 import { displayWidth, truncateToWidth } from './utils';
-import { resolveFg, resolveBg } from './color';
+import { resolveFg, resolveBg, getColorDepth } from './color';
 import { getOutputTarget } from './output';
 import { patchConsoleTo, restoreConsole, registerCleanup, unregisterCleanup } from './lifecycle';
 
@@ -304,6 +304,26 @@ export function writeStatic(text: string): void {
 export const printStatic = writeStatic;
 
 
+// SGR text style attributes, set as boolean props on <text>. Gated on color
+// depth like resolveFg: piped/CI output (depth 'none') stays escape-free.
+const TEXT_ATTRS: ReadonlyArray<[prop: string, sgr: string]> = [
+    ['bold', '\x1b[1m'],
+    ['faint', '\x1b[2m'],
+    ['italic', '\x1b[3m'],
+    ['underline', '\x1b[4m'],
+    ['inverse', '\x1b[7m'],
+    ['lineThrough', '\x1b[9m'],
+];
+
+function textAttrCodes(props: Record<string, any>): string {
+    if (getColorDepth() === 'none') return '';
+    let out = '';
+    for (const [prop, sgr] of TEXT_ATTRS) {
+        if (props[prop]) out += sgr;
+    }
+    return out;
+}
+
 // Tags that always start on their own line(s).
 const BLOCK_TAGS = new Set(['box', 'row']);
 
@@ -337,7 +357,11 @@ function hasBlockChild(node: TerminalNode): boolean {
  */
 function renderRow(node: TerminalNode): string[] {
     const gap = Math.max(0, Number(node.props.gap ?? 2));
-    const align: 'top' | 'center' | 'bottom' = node.props.align ?? 'top';
+    // Canonical values: 'start' | 'center' | 'end' (the cross-package layout
+    // vocabulary); 'top'/'bottom' are accepted aliases.
+    const rawAlign = node.props.align ?? 'start';
+    const align: 'start' | 'center' | 'end' =
+        rawAlign === 'top' ? 'start' : rawAlign === 'bottom' ? 'end' : rawAlign;
 
     const cols: string[][] = [];
     for (const child of node.children) {
@@ -349,7 +373,7 @@ function renderRow(node: TerminalNode): string[] {
     const widths = cols.map((c) => c.reduce((max, l) => Math.max(max, displayWidth(l)), 0));
     const height = Math.max(...cols.map((c) => c.length));
     const offsets = cols.map((c) =>
-        align === 'bottom' ? height - c.length
+        align === 'end' ? height - c.length
             : align === 'center' ? Math.floor((height - c.length) / 2)
             : 0);
 
@@ -390,8 +414,9 @@ export function renderNodeToLines(node: TerminalNode): string[] {
     // here so background tints (block cursor, badges, key hints) render.
     const colorCode = resolveFg(node.props.color);
     const bgCode = node.tag === 'box' ? '' : resolveBg(node.props.backgroundColor);
-    const prefix = bgCode + colorCode;
-    const reset = (colorCode || bgCode) ? '\x1b[0m' : '';
+    const attrCode = textAttrCodes(node.props);
+    const prefix = attrCode + bgCode + colorCode;
+    const reset = (colorCode || bgCode || attrCode) ? '\x1b[0m' : '';
 
     // Render children
     for (const child of node.children) {
@@ -981,8 +1006,12 @@ declare global {
         interface RowAttributes {
             /** Columns of spacing between cells. Default 2. */
             gap?: number;
-            /** Vertical alignment of shorter columns. Default 'top'. */
-            align?: 'top' | 'center' | 'bottom';
+            /**
+             * Vertical alignment of shorter columns. Canonical values
+             * 'start' | 'center' | 'end' (default 'start'); 'top'/'bottom'
+             * are accepted aliases.
+             */
+            align?: 'start' | 'center' | 'end' | 'top' | 'bottom';
             children?: any;
         }
 
@@ -996,6 +1025,13 @@ declare global {
             padX?: number;
             label?: string;
             labelColor?: string;
+            // Text style attributes (rendered on <text>; inert on <box>).
+            bold?: boolean;
+            faint?: boolean;
+            italic?: boolean;
+            underline?: boolean;
+            inverse?: boolean;
+            lineThrough?: boolean;
             children?: any;
         }
 

@@ -17,7 +17,7 @@ export interface TextOptions {
  * Single-line text prompt. Enter validates and resolves; Esc/Ctrl+C resolve
  * the CANCEL symbol (check with isCancel). Editing is end-of-line only.
  */
-export function text(opts: TextOptions): Promise<string | symbol> {
+export function text(opts: TextOptions): Promise<string | typeof CANCEL> {
     const display = (v: string) => (opts.mask ? opts.mask.repeat([...v].length) : v);
     return runPrompt<string>({
         message: opts.message,
@@ -82,6 +82,6 @@ export function text(opts: TextOptions): Promise<string | symbol> {
 }
 
 /** `text` with masked rendering — the summary shows the mask, never the value. */
-export function password(opts: Omit<TextOptions, 'mask' | 'placeholder'> & { mask?: string }): Promise<string | symbol> {
+export function password(opts: Omit<TextOptions, 'mask' | 'placeholder'> & { mask?: string }): Promise<string | typeof CANCEL> {
     return text({ ...opts, mask: opts.mask ?? '•' });
 }

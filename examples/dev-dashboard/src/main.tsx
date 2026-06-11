@@ -10,8 +10,7 @@
 import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
     Tabs, Table, KeyHints, QRCode, LogView, Row, Gradient, Badge,
-    createLogStore, onKey, resolveColor, getOutputTarget,
-} from '@sigx/terminal';
+    createLogStore, onKey, getTerminalSize, Text, Spacer } from '@sigx/terminal';
 
 const BUNDLE_URL = 'http://192.168.1.10:8788/main.lynx.bundle?v=demo';
 
@@ -50,12 +49,12 @@ const Dashboard = component(() => {
     });
 
     return () => {
-        const logHeight = Math.max(6, getOutputTarget().rows - 12);
+        const logHeight = Math.max(6, getTerminalSize().rows - 12);
         return (
             <box>
                 <box><Gradient text="sigx dev · my-lynx-app" preset="sigx" /></box>
-                <box><text color={resolveColor('dim')}>{BUNDLE_URL}</text></box>
-                <box></box>
+                <box><Text color="dim">{BUNDLE_URL}</Text></box>
+                <Spacer size={1} />
                 <Tabs
                     model={tab}
                     autofocus
@@ -65,7 +64,7 @@ const Dashboard = component(() => {
                         { label: 'Connect', value: 'connect' },
                     ]}
                 />
-                <box></box>
+                <Spacer size={1} />
                 {tab.value === 'devices' && (
                     <Row gap={4}>
                         <QRCode text={BUNDLE_URL} />
@@ -78,7 +77,7 @@ const Dashboard = component(() => {
                                     ['iPhone SE (sim)', 'ios', 'booted'],
                                 ]}
                             />
-                            <box></box>
+                            <Spacer size={1} />
                             <Badge label="2 devices live" variant="solid" color="success" />
                         </box>
                     </Row>
@@ -88,11 +87,11 @@ const Dashboard = component(() => {
                 )}
                 {tab.value === 'connect' && (
                     <box>
-                        <text color={resolveColor('dim')}>Scan with sigx-lynx-go:</text>
+                        <Text color="dim">Scan with sigx-lynx-go:</Text>
                         <QRCode text={BUNDLE_URL} />
                     </box>
                 )}
-                <box></box>
+                <Spacer size={1} />
                 <KeyHints hints={[
                     { key: '←/→', label: 'tabs' },
                     { key: 'Tab', label: 'focus' },

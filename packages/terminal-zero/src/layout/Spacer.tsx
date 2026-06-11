@@ -7,8 +7,10 @@ export const Spacer = component<
 >(({ props }) => {
     return () => {
         const size = Math.max(1, props.size ?? 1);
+        // A <box> already renders one line; each <br/> adds another — so
+        // exactly `size` blank lines means size-1 breaks.
         const breaks = [];
-        for (let i = 0; i < size; i++) breaks.push(<br />);
+        for (let i = 0; i < size - 1; i++) breaks.push(<br />);
         return <box>{breaks}</box>;
     };
 }, { name: 'Spacer' });

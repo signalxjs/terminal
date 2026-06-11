@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted } from '@sigx/terminal';
-import { resolveColor, TaskList, createLogStore, type TaskItem } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { TaskList, createLogStore, type TaskItem } from '@sigx/terminal';
 
 const FAKE_OUTPUT = [
     'Analyzing dependencies',
@@ -51,11 +51,11 @@ export const TasksDemo = component(() => {
 
     return () => (
         <box>
-            <text color={resolveColor('dim')}>Build pipeline: spinner per task, log tail under the running one.</text>
-            <box></box>
+            <Text color="dim">Build pipeline: spinner per task, log tail under the running one.</Text>
+            <Spacer size={1} />
             <TaskList tasks={state.tasks} log={store} logHeight={5} />
-            <box></box>
-            <text color={resolveColor('dim')}>Tree variant:</text>
+            <Spacer size={1} />
+            <Text color="dim">Tree variant:</Text>
             <TaskList tasks={state.tasks} variant="tree" />
         </box>
     );

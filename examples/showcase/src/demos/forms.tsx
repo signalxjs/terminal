@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal } from '@sigx/terminal';
-import { Input, Checkbox, Select, Radio, MultiSelect, Confirm, resolveColor } from '@sigx/terminal';
+import { component, signal, Text, Spacer } from '@sigx/terminal';
+import { Input, Checkbox, Select, Radio, MultiSelect, Confirm } from '@sigx/terminal';
 
 export const FormsDemo = component(() => {
     const name = signal('');
@@ -12,12 +12,12 @@ export const FormsDemo = component(() => {
 
     return () => (
         <box>
-            <text color={resolveColor('dim')}>Tab between fields. Type in the input; Space toggles; ↑/↓ or j/k in lists.</text>
-            <box></box>
+            <Text color="dim">Tab between fields. Type in the input; Space toggles; ↑/↓ or j/k in lists.</Text>
+            <Spacer size={1} />
             <Input model={name} label="Name" placeholder="type your name…" />
-            <box></box>
+            <Spacer size={1} />
             <Checkbox model={agree} label="I agree to the terms" />
-            <box></box>
+            <Spacer size={1} />
             <Select
                 label="Fruit"
                 model={fruit}
@@ -27,7 +27,7 @@ export const FormsDemo = component(() => {
                     { label: 'Cherry', value: 'cherry' },
                 ]}
             />
-            <box></box>
+            <Spacer size={1} />
             <Radio
                 label="Size"
                 model={size}
@@ -37,7 +37,7 @@ export const FormsDemo = component(() => {
                     { label: 'Large', value: 'l' },
                 ]}
             />
-            <box></box>
+            <Spacer size={1} />
             <MultiSelect
                 label="Toppings"
                 model={() => toppings.picked}
@@ -48,12 +48,12 @@ export const FormsDemo = component(() => {
                     { label: 'Mushrooms', value: 'mushrooms' },
                 ]}
             />
-            <box></box>
+            <Spacer size={1} />
             <Confirm label="Proceed with the order?" model={() => proceed.value} />
-            <box></box>
-            <text color={resolveColor('fg')}>Hello </text>
-            <text color={resolveColor('accent')}>{name.value || 'stranger'}</text>
-            <text color={resolveColor('fg')}> — {agree.value ? 'agreed' : 'not agreed'}, {fruit.value}/{size.value}, [{toppings.picked.join('+') || 'plain'}], {proceed.value ? 'go' : 'hold'}</text>
+            <Spacer size={1} />
+            <Text color="fg">Hello </Text>
+            <Text color="accent">{name.value || 'stranger'}</Text>
+            <Text color="fg"> — {agree.value ? 'agreed' : 'not agreed'}, {fruit.value}/{size.value}, [{toppings.picked.join('+') || 'plain'}], {proceed.value ? 'go' : 'hold'}</Text>
         </box>
     );
 }, { name: 'FormsDemo' });

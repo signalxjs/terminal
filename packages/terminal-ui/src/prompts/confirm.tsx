@@ -16,7 +16,7 @@ export interface ConfirmOptions {
  * Yes/No prompt: y/n answer immediately, ←/→ (or h/l) flip the selection,
  * Enter resolves the current value.
  */
-export function confirm(opts: ConfirmOptions): Promise<boolean | symbol> {
+export function confirm(opts: ConfirmOptions): Promise<boolean | typeof CANCEL> {
     const yes = opts.active ?? 'Yes';
     const no = opts.inactive ?? 'No';
     return runPrompt<boolean>({

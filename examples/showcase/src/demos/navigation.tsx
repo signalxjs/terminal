@@ -1,14 +1,14 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal } from '@sigx/terminal';
-import { Tabs, StatusBar, KeyHints, resolveColor } from '@sigx/terminal';
+import { component, signal, Text, Spacer } from '@sigx/terminal';
+import { Tabs, StatusBar, KeyHints } from '@sigx/terminal';
 
 export const NavigationDemo = component(() => {
     const tab = signal('overview');
 
     return () => (
         <box>
-            <text color={resolveColor('dim')}>Tab to focus the switcher, then ←/→ (or h/l) to change tabs.</text>
-            <box></box>
+            <Text color="dim">Tab to focus the switcher, then ←/→ (or h/l) to change tabs.</Text>
+            <Spacer size={1} />
             <Tabs
                 model={tab}
                 options={[
@@ -17,18 +17,18 @@ export const NavigationDemo = component(() => {
                     { label: 'Settings', value: 'settings' },
                 ]}
             />
-            <box></box>
-            <text color={resolveColor('fg')}>Active tab: </text>
-            <text color={resolveColor('accent')}>{tab.value}</text>
-            <box></box>
-            <text color={resolveColor('dim')}>StatusBar (key-hint footer):</text>
+            <Spacer size={1} />
+            <Text color="fg">Active tab: </Text>
+            <Text color="accent">{tab.value}</Text>
+            <Spacer size={1} />
+            <Text color="dim">StatusBar (key-hint footer):</Text>
             <StatusBar items={[
                 { key: '↵', label: 'select' },
                 { key: 'q', label: 'quit' },
                 { key: '?', label: 'help' },
             ]} />
-            <box></box>
-            <text color={resolveColor('dim')}>KeyHints (lighter dev-server footer):</text>
+            <Spacer size={1} />
+            <Text color="dim">KeyHints (lighter dev-server footer):</Text>
             <KeyHints hints={[
                 { key: 'r', label: 'reload' },
                 { key: 'd', label: 'devices' },

@@ -7,7 +7,7 @@
 //
 // Each finished step collapses into a permanent `✔ label (1.2s)` line above
 // the live region; the final frame persists in scrollback on exit.
-import { defineApp, component, signal, onMounted, terminalMount, exitTerminal } from '@sigx/terminal';
+import { defineApp, component, signal, onMounted, terminalMount, exitTerminal, Spacer } from '@sigx/terminal';
 import { Gradient, TaskList, createLogStore, collapseTask, type TaskItem, type LogStore } from '@sigx/terminal';
 
 interface Step {
@@ -126,7 +126,7 @@ const BuildSim = component(() => {
     return () => (
         <box>
             <Gradient text="sigx lynx · build" preset="sigx" />
-            <box></box>
+            <Spacer size={1} />
             <TaskList tasks={state.tasks} log={state.store} logHeight={5} />
         </box>
     );
