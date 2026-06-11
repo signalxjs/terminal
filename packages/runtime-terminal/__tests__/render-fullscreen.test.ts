@@ -59,6 +59,21 @@ describe('fullscreen rendering (alt screen)', () => {
         expect(out).toContain('\x1B[?25h');
     });
 
+    it('queues empty-string spacers and flushes them as blank lines', () => {
+        const cap = captureOutput();
+        const app = linesApp(['full']);
+        const handle = renderTerminal(app.vnode, { mode: 'fullscreen', patchConsole: false });
+        flush();
+
+        writeStatic('first');
+        writeStatic('');      // spacer — must survive the queue
+        writeStatic('second');
+        cap.clear();
+        handle.unmount();
+
+        expect(cap.output()).toContain('first\n\nsecond');
+    });
+
     it('never erases the real scrollback (no 3J), even with clearConsole', () => {
         const cap = captureOutput();
         const app = linesApp(['full']);
