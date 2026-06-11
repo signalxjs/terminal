@@ -21,7 +21,9 @@ const ESC = String.fromCharCode(27);
  * cursor; ←/→/↑/↓ move (↑/↓ keep a sticky goal column); Home/End jump within
  * the visual row; Backspace/Delete edit around the cursor. Enter (`\r`)
  * submits — unless the text ends with `\`, which is stripped and replaced by
- * a newline (continuation). A bare `\n` (Ctrl+J) always inserts a newline.
+ * a newline (continuation). Newlines: Ctrl+J always; ESC+`\r` and the CSI-u
+ * Shift/Ctrl+Enter encodings for terminals configured to send them (plain
+ * Shift+Enter is indistinguishable from Enter on unconfigured terminals).
  * NOTE: this deliberately diverges from the prompt engine's `isEnter` (which
  * treats `\r` and `\n` alike) — an editor needs the distinction.
  *
@@ -73,7 +75,12 @@ export const TextArea = component<
             emit('submit', text);
             return true;
         }
-        if (key === '\n') { // Ctrl+J — always a newline
+        // Newline keys: Ctrl+J (bare \n) works everywhere; ESC+\r is what
+        // terminals configured for Shift+Enter/Alt+Enter send (e.g. Claude
+        // Code's /terminal-setup binding); \x1b[13;2u (and ;5u) is the CSI-u
+        // encoding of Shift+Enter / Ctrl+Enter. Plain Shift+Enter on an
+        // unconfigured terminal is indistinguishable from Enter (\r).
+        if (key === '\n' || key === ESC + '\r' || key === ESC + '[13;2u' || key === ESC + '[13;5u') {
             apply(insertAt(buf(), '\n'), true);
             state.goalCol = -1;
             return true;

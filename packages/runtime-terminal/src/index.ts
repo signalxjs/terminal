@@ -628,8 +628,10 @@ export interface RenderTerminalOptions {
     /** Legacy alias for `mode: 'fullscreen'`. */
     fullscreen?: boolean;
     /**
-     * Clear the screen on mount. Only meaningful in fullscreen mode (the alt
-     * screen already starts blank on most emulators); inline mode never clears.
+     * Start from a clean viewport. Fullscreen: clears the alt screen.
+     * Inline: SCROLLS the user's existing content up into scrollback (never
+     * erases it) and homes the cursor, so the app starts at the top of an
+     * empty viewport — the shell-app look.
      */
     clearConsole?: boolean;
     /**
@@ -748,6 +750,11 @@ function setupTerminal(options: RenderTerminalOptions = {}): TerminalNode {
             // exit. Never \x1B[3J here — the alt buffer has no scrollback, and
             // it would wipe the user's real one on some emulators.
             target.write('\x1B[?1049h\x1B[H' + (options.clearConsole ? '\x1B[2J' : ''));
+        } else if (options.clearConsole) {
+            // Inline clean start: scroll existing content up into scrollback
+            // (newlines, never \x1B[2J — that would erase it) and home the
+            // cursor so the live region begins at the top of the viewport.
+            target.write('\n'.repeat(target.rows) + '\x1B[H');
         }
         target.write('\x1B[?25l'); // hide cursor
         process.stdout.on('resize', handleResize);

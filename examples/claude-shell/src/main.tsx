@@ -20,27 +20,36 @@ import { COMMANDS, MODELS, FAKE_REPLIES } from './commands';
 const Shell = component(() => {
     const input = signal({ value: '' });
     const phase = signal({ thinking: false, model: 'fable-5' });
+    // Lines printed into the transcript so far — drives the bottom anchor:
+    // until the conversation fills the viewport, blank filler rows above the
+    // input pin it to the bottom of the screen (the Claude Code look).
+    const transcript = signal({ lines: 0 });
     const views = createViewStack<'shell' | 'model'>('shell');
     let offEsc: (() => void) | null = null;
     let replyTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const say = (text = '') => {
+        printStatic(text);
+        transcript.lines += text.split('\n').length;
+    };
+
     const transcriptHeader = () => {
-        printStatic(renderPixelArt(LOGO_ROWS, LOGO_PALETTE).join('\n'));
-        printStatic(`${paintToken('sigx shell', 'accent')} ${paintToken('v0.1.0', 'dim')}`);
-        printStatic(paintToken(`${phase.model} · ${process.cwd()}`, 'dim'));
-        printStatic('');
-        printStatic(`${paintToken('Welcome!', 'success')} Type a message, or ${paintToken('/', 'accent')} for commands.`);
+        say(renderPixelArt(LOGO_ROWS, LOGO_PALETTE).join('\n'));
+        say(`${paintToken('sigx shell', 'accent')} ${paintToken('v0.1.0', 'dim')}`);
+        say(paintToken(`${phase.model} · ${process.cwd()}`, 'dim'));
+        say('');
+        say(`${paintToken('Welcome!', 'success')} Type a message, or ${paintToken('/', 'accent')} for commands.`);
     };
 
     const respond = (prompt: string) => {
-        printStatic('');
-        printStatic(`${paintToken('❯', 'accent')} ${prompt}`);
+        say('');
+        say(`${paintToken('❯', 'accent')} ${prompt}`);
         phase.thinking = true;
         let i = 0;
         const step = () => {
-            if (i === 0) printStatic('');
+            if (i === 0) say('');
             if (i < FAKE_REPLIES.length) {
-                printStatic(paintToken(FAKE_REPLIES[i], i === 0 ? 'fg' : 'dim'));
+                say(paintToken(FAKE_REPLIES[i], i === 0 ? 'fg' : 'dim'));
                 i++;
                 replyTimer = setTimeout(step, 350);
             } else {
@@ -55,9 +64,9 @@ const Shell = component(() => {
         input.value = '';
         switch (cmd) {
             case '/help':
-                printStatic('');
+                say('');
                 for (const c of COMMANDS) {
-                    printStatic(`  ${paintToken(c.value, 'accent')}  ${paintToken(c.description ?? '', 'dim')}`);
+                    say(`  ${paintToken(c.value, 'accent')}  ${paintToken(c.description ?? '', 'dim')}`);
                 }
                 break;
             case '/model':
@@ -67,11 +76,11 @@ const Shell = component(() => {
                 const themes = listThemes().filter((t) => t !== 'neutral');
                 const next = themes[(themes.indexOf(getTheme()) + 1) % themes.length];
                 setTheme(next);
-                printStatic(paintToken(`theme → ${next}`, 'dim'));
+                say(paintToken(`theme → ${next}`, 'dim'));
                 break;
             }
             case '/clear':
-                printStatic('\n' + paintToken('─'.repeat(40), 'dim') + '\n');
+                say('\n' + paintToken('─'.repeat(40), 'dim') + '\n');
                 break;
             case '/quit':
                 exitTerminal();
@@ -107,14 +116,24 @@ const Shell = component(() => {
     });
 
     return () => {
-        const cols = getOutputTarget().columns;
+        const target = getOutputTarget();
+        const cols = target.columns;
         const suggestions = input.value.startsWith('/')
             ? COMMANDS.filter((c) => c.value.startsWith(input.value.trim().split(/\s/)[0]))
             : [];
 
+        // Bottom anchor: until the transcript fills the viewport, blank rows
+        // above the input area pin it to the bottom of the screen. Once the
+        // conversation is taller than the window the filler is 0 and natural
+        // scrollback flow takes over. ~4 = divider + input row + hints + slack.
+        const chrome = 4 + suggestions.length;
+        const filler = Math.max(0, target.rows - transcript.lines - chrome);
+        const gap = Array.from({ length: filler }, () => <box><text> </text></box>);
+
         if (views.current() === 'model') {
             return (
                 <box>
+                    {gap}
                     <Divider width={Math.min(cols, 80)} label="model" />
                     <Select
                         label=" Pick a model "
@@ -124,7 +143,7 @@ const Shell = component(() => {
                         options={MODELS}
                         onSubmit={(value: string) => {
                             phase.model = value;
-                            printStatic(paintToken(`model → ${value}`, 'dim'));
+                            say(paintToken(`model → ${value}`, 'dim'));
                             views.pop();
                         }}
                     />
@@ -139,6 +158,7 @@ const Shell = component(() => {
 
         return (
             <box>
+                {gap}
                 <Divider width={Math.min(cols, 120)} />
                 <TextArea
                     autofocus
@@ -171,4 +191,4 @@ if (!process.stdin.isTTY) {
     process.exit(1);
 }
 
-defineApp(<Shell />).mount({ mode: 'inline' }, terminalMount);
+defineApp(<Shell />).mount({ mode: 'inline', clearConsole: true }, terminalMount);

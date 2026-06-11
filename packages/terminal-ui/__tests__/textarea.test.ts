@@ -80,6 +80,18 @@ describe('TextArea (growing multi-line editor)', () => {
         expect(state.value).toBe('a\nb');
     });
 
+    it('configured Shift+Enter sequences (ESC+CR, CSI-u) insert newlines', async () => {
+        const { state, submitted } = await mount();
+        const ESC = String.fromCharCode(27);
+        await type('a');
+        await press(ESC + '\r');     // terminal-setup style Shift/Alt+Enter
+        await type('b');
+        await press(ESC + '[13;2u'); // CSI-u Shift+Enter
+        await type('c');
+        expect(state.value).toBe('a\nb\nc');
+        expect(submitted).toEqual([]);
+    });
+
     it('paste chunks insert whole, with CRLF normalized', async () => {
         const { state } = await mount();
         dispatchKey('first\r\nsecond');
