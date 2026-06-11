@@ -20,12 +20,16 @@ describe('fx text components are block elements', () => {
         vi.useRealTimers();
     });
 
-    async function lineOf(cap: ReturnType<typeof captureOutput>, needle: string) {
-        // Strip SGR escapes first — per-character gradients split the literal
-        // text with color codes.
+    function lineOf(cap: ReturnType<typeof captureOutput>, needle: string) {
+        // Analyze the LATEST frame only (not the whole write history), and
+        // strip all CSI sequences — including private-mode ones like
+        // \x1B[?25l — before searching: per-character gradients split the
+        // literal text with color codes.
         const esc = String.fromCharCode(27);
-        const strip = (s: string) => s.split(esc).map((part, i) => (i === 0 ? part : part.replace(/^\[[0-9;]*[A-Za-z]/, ''))).join('');
-        const lines = cap.output().split('\n').map(strip);
+        const strip = (s: string) =>
+            s.split(esc).map((part, i) => (i === 0 ? part : part.replace(/^\[\??[0-9;]*[A-Za-z~]/, ''))).join('');
+        const frame = cap.chunks[cap.chunks.length - 1] ?? '';
+        const lines = frame.split('\n').map(strip);
         return lines.findIndex((l) => l.includes(needle));
     }
 
@@ -42,8 +46,8 @@ describe('fx text components are block elements', () => {
         ).unmount;
         await settle();
 
-        const inputLine = await lineOf(cap, 'input row');
-        const shimmerLine = await lineOf(cap, 'thinking');
+        const inputLine = lineOf(cap, 'input row');
+        const shimmerLine = lineOf(cap, 'thinking');
         expect(inputLine).toBeGreaterThanOrEqual(0);
         expect(shimmerLine).toBeGreaterThan(inputLine); // different, later line
     });
@@ -63,8 +67,8 @@ describe('fx text components are block elements', () => {
             ).unmount;
             await settle();
 
-            const headerLine = await lineOf(cap, 'header');
-            const titleLine = await lineOf(cap, 'title');
+            const headerLine = lineOf(cap, 'header');
+            const titleLine = lineOf(cap, 'title');
             expect(titleLine, `depth ${depth}`).toBeGreaterThan(headerLine);
             unmount?.();
             unmount = null;
