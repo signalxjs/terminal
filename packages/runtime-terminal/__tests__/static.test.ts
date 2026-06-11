@@ -56,6 +56,22 @@ describe('static output', () => {
         expect(cap.output()).toBe('');
     });
 
+    it('the whole burst (erase + static + repaint) is ONE atomic write, sync-wrapped', () => {
+        const cap = captureOutput();
+        const app = linesApp(['live']);
+        unmount = renderTerminal(app.vnode, { patchConsole: false }).unmount;
+        flush();
+        cap.clear();
+
+        writeStatic('streamed line');
+
+        // A second write would let the terminal paint the erased intermediate
+        // state — the input-area flash. Exactly one chunk, atomically painted.
+        expect(cap.chunks).toHaveLength(1);
+        expect(cap.chunks[0].startsWith('\x1b[?2026h')).toBe(true);
+        expect(cap.chunks[0].endsWith('\x1b[?2026l')).toBe(true);
+    });
+
     it('an empty string prints one blank static line (transcript spacer)', () => {
         const cap = captureOutput();
         const app = linesApp(['live']);
