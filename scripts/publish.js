@@ -47,6 +47,7 @@ const dryRun = args.includes('--dry-run');
 const tagIndex = args.indexOf('--tag');
 const tag = tagIndex !== -1 ? args[tagIndex + 1] : null;
 const provenance = args.includes('--provenance');
+const allowDirty = args.includes('--allow-dirty');
 
 // NPM token support for CI/CD (avoids 2FA prompts)
 const NPM_TOKEN = process.env.NPM_TOKEN;
@@ -177,6 +178,19 @@ function publishPackage(pkg) {
 async function main() {
     console.log('🚀 SignalX Publisher');
     console.log('================================');
+
+    // Lockstep guard (same model as sigx core/lynx): refuse to publish when
+    // the publishable packages disagree on version.
+    execSync('node scripts/check-versions.js', { cwd: rootDir, stdio: 'inherit' });
+
+    // Pre-flight: a real publish should come from a clean, committed tree.
+    if (!dryRun && !allowDirty) {
+        const status = execSync('git status --porcelain', { cwd: rootDir }).toString().trim();
+        if (status) {
+            console.error('❌ Working tree is not clean. Commit or stash first, or pass --allow-dirty.');
+            process.exit(1);
+        }
+    }
 
     if (dryRun) {
         console.log('🔍 DRY RUN MODE - No packages will be published\n');
