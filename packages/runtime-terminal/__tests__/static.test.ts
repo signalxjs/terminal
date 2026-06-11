@@ -56,6 +56,29 @@ describe('static output', () => {
         expect(cap.output()).toBe('');
     });
 
+    it('an empty string prints one blank static line (transcript spacer)', () => {
+        const cap = captureOutput();
+        const app = linesApp(['live']);
+        unmount = renderTerminal(app.vnode, { patchConsole: false }).unmount;
+        flush();
+        cap.clear();
+
+        writeStatic('');
+        // Erase the 1-line region, ONE blank static line, repaint below it.
+        expect(cap.output()).toBe('\r\x1B[J' + '\x1B[K\n' + 'live\x1B[K\x1B[J');
+    });
+
+    it("'foo\\n' still normalizes to a single line", () => {
+        const cap = captureOutput();
+        const app = linesApp(['live']);
+        unmount = renderTerminal(app.vnode, { patchConsole: false }).unmount;
+        flush();
+        cap.clear();
+
+        writeStatic('one\n');
+        expect(cap.output()).toBe('\r\x1B[J' + 'one\x1B[K\n' + 'live\x1B[K\x1B[J');
+    });
+
     it('printStatic is an alias of writeStatic', () => {
         expect(printStatic).toBe(writeStatic);
     });
