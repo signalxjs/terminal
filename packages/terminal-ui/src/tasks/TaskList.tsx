@@ -35,7 +35,9 @@ export const TaskList = component<
     return () => {
         const tasks = props.tasks ?? [];
         const tree = props.variant === 'tree';
-        const lineColor = resolveColor('line');
+        // `dim`, not `line`: tree guides render on the terminal's own
+        // background in inline mode, where `line` can be near-invisible.
+        const guideColor = resolveColor('dim');
 
         const glyphFor = (status: TaskStatus): [string, string, string] => {
             // [glyph, glyph color token, label color token]
@@ -55,7 +57,7 @@ export const TaskList = component<
                     const guide = tree ? (i === tasks.length - 1 ? '└─ ' : '├─ ') : '';
                     const row = (
                         <text>
-                            {tree && <text color={lineColor}>{guide}</text>}
+                            {tree && <text color={guideColor}>{guide}</text>}
                             <text color={resolveColor(glyphToken)}>{glyph}</text>
                             <text color={resolveColor(labelToken)}> {task.label}</text>
                             {task.detail && <text color={resolveColor('dim')}> ({task.detail})</text>}

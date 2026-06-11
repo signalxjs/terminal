@@ -16,7 +16,7 @@ export default defineLibConfig({
         'tasks/index': 'src/tasks/index.ts',
         'prompts/index': 'src/prompts/index.ts'
     },
-    external: [/@sigx\/.*/, 'node:process', 'node:readline', 'node:tty'],
+    external: [/@sigx\/.*/, /^node:/],
     platform: 'node',
     jsx: true
 });
