@@ -133,6 +133,20 @@ describe('LogView (scrollable log viewer)', () => {
         expect(cap.output()).toContain('following');
     });
 
+    it('fills the configured width regardless of content length', async () => {
+        const store = feed(3); // short lines like "line 1"
+        const cap = await mount(store, 4); // fake terminal: 60 cols → default width 56
+        const lines = cap.output().split('\n');
+        const top = lines.find((l) => l.includes('╭'));
+        const interior = lines.filter((l) => l.includes('│'));
+        expect(top).toBeDefined();
+        // The border spans the full default width (columns - 4), not the content.
+        expect(top!.indexOf('╮') - top!.indexOf('╭')).toBe(55);
+        for (const row of interior) {
+            expect(row.indexOf('│', row.indexOf('│') + 1)).toBeGreaterThan(50);
+        }
+    });
+
     it('renders a stable frame height with fewer lines than the viewport', async () => {
         const store = feed(2);
         const cap = await mount(store, 6);
