@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 /**
- * Shared clack-style chrome for the imperative prompts:
+ * Shared chrome for the imperative prompts:
  *
  *   ◆ Project name              ← state glyph + message
  *   │ my-sigx-app▌              ← body rows (promptRow)

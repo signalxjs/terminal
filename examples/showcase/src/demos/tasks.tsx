@@ -51,7 +51,7 @@ export const TasksDemo = component(() => {
 
     return () => (
         <box>
-            <text color={resolveColor('dim')}>BuildKit-style pipeline: spinner per task, log tail under the running one.</text>
+            <text color={resolveColor('dim')}>Build pipeline: spinner per task, log tail under the running one.</text>
             <box></box>
             <TaskList tasks={state.tasks} log={store} logHeight={5} />
             <box></box>

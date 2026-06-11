@@ -91,8 +91,8 @@ export function resolveColor(token: string | undefined): string {
 
 // ---------------------------------------------------------------------------
 // Theme canvas — auto-paint the renderer's screen background + default
-// foreground from the active theme (the "app-level" canvas, à la Textual). The
-// renderer owns the device fill; this is the reactive binding that drives it.
+// foreground from the active theme (the app-level canvas). The renderer owns
+// the device fill; this is the reactive binding that drives it.
 // ---------------------------------------------------------------------------
 
 let canvasEffect: EffectRunner | null = null;

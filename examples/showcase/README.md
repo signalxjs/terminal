@@ -51,7 +51,7 @@ src/
     layout.tsx      Box, Divider, Spacer, Card
     data.tsx        Table
     fx.tsx          Gradient, Shimmer, Banner, Spinner variants, ProgressBar variants
-    tasks.tsx       TaskList, LogPanel, createLogStore (BuildKit-style pipeline)
+    tasks.tsx       TaskList, LogPanel, createLogStore (build-pipeline demo)
 ```
 
 This is the design-system layering in action: components come from

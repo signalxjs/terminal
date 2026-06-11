@@ -1,5 +1,5 @@
 /**
- * Imperative, clack-style prompts: linear CLI wizards without a JSX step
+ * Imperative prompts: linear CLI wizards without a JSX step
  * machine. Each prompt mounts a one-shot inline UI, resolves on Enter, and
  * collapses into a permanent `◇ message · answer` line — a finished wizard
  * reads as a tidy transcript in scrollback.

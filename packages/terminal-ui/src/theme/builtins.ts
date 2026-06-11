@@ -60,7 +60,7 @@ for (const [id, theme] of Object.entries(THEMES)) {
 // The SigX-tui default.
 setTheme('obsidian');
 
-// Auto-paint the themed screen canvas from the active theme (à la Textual's app
-// theme). Reacts to runtime setTheme/setColorDepth. Call disableThemeCanvas()
-// to opt out (transparent / inline apps that don't want a themed background).
+// Auto-paint the themed screen canvas from the active theme. Reacts to runtime
+// setTheme/setColorDepth. Call disableThemeCanvas() to opt out (transparent /
+// inline apps that don't want a themed background).
 applyThemeCanvas();

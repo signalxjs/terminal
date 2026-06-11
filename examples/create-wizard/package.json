@@ -3,7 +3,7 @@
     "version": "0.0.0",
     "private": true,
     "type": "module",
-    "description": "Imperative prompt-kit demo: a clack-style create flow with collapse-to-static answers",
+    "description": "Imperative prompt-kit demo: a create flow with collapse-to-static answers",
     "scripts": {
         "start": "tsx --tsconfig ./tsconfig.json src/main.tsx",
         "typecheck": "tsgo --noEmit"
