@@ -16,7 +16,7 @@ export interface MultiSelectPromptOptions<T> {
  * Multi-choice prompt: ↑/k ↓/j move, Space toggles, `a` toggles all,
  * Enter resolves the checked values (in option order).
  */
-export function multiselect<T = string>(opts: MultiSelectPromptOptions<T>): Promise<T[] | symbol> {
+export function multiselect<T = string>(opts: MultiSelectPromptOptions<T>): Promise<T[] | typeof CANCEL> {
     const display = (values: T[]) => {
         if (values.length === 0) return 'none';
         return opts.options.filter((o) => values.includes(o.value)).map(optionLabel).join(', ');

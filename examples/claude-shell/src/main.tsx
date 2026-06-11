@@ -12,8 +12,7 @@ import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
     TextArea, SuggestionList, Select, Divider, KeyHints, Shimmer,
     renderPixelArt, createViewStack, onKey, isEsc, printStatic, paintToken,
-    resolveColor, getTerminalSize, layoutText, setTheme, listThemes, getTheme,
-} from '@sigx/terminal';
+    getTerminalSize, layoutText, setTheme, listThemes, getTheme, Spacer } from '@sigx/terminal';
 import { LOGO_ROWS, LOGO_PALETTE } from './logo';
 import { COMMANDS, MODELS, FAKE_REPLIES } from './commands';
 
@@ -137,7 +136,7 @@ const Shell = component(() => {
         const inputRows = Math.min(MAX_INPUT_ROWS, layoutText(input.value, innerWidth).rows.length);
         const mkGap = (chromeRows: number) => {
             const filler = Math.max(0, rows - transcript.lines - chromeRows - 1 /* slack */);
-            return Array.from({ length: filler }, () => <box><text> </text></box>);
+            return filler > 0 ? [<Spacer size={filler} />] : [];
         };
 
         if (views.current() === 'model') {

@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted } from '@sigx/terminal';
-import { ProgressBar, Spinner, Badge, resolveColor } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { ProgressBar, Spinner, Badge } from '@sigx/terminal';
 
 export const FeedbackDemo = component(() => {
     const state = signal({ pct: 20, done: false });
@@ -17,13 +17,13 @@ export const FeedbackDemo = component(() => {
 
     return () => (
         <box>
-            <text color={resolveColor('dim')}>Live progress + an animated spinner.</text>
-            <box></box>
+            <Text color="dim">Live progress + an animated spinner.</Text>
+            <Spacer size={1} />
             <ProgressBar value={state.pct} max={100} width={28} />
-            <box></box>
+            <Spacer size={1} />
             <Spinner label={state.done ? 'Complete' : 'Working…'} done={state.done} />
-            <box></box>
-            <text color={resolveColor('dim')}>Badges:</text>
+            <Spacer size={1} />
+            <Text color="dim">Badges:</Text>
             <Badge label="solid" variant="solid" />
             <Badge label="accent" variant="accent" />
             <Badge label="bracket" variant="bracket" />

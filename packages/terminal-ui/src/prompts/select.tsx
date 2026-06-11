@@ -26,7 +26,7 @@ export interface SelectOptions<T> {
 }
 
 /** Single-choice prompt: ↑/k ↓/j move (wrapping), Enter resolves the value. */
-export function select<T = string>(opts: SelectOptions<T>): Promise<T | symbol> {
+export function select<T = string>(opts: SelectOptions<T>): Promise<T | typeof CANCEL> {
     const display = (v: T) => {
         const hit = opts.options.find((o) => o.value === v);
         return hit ? optionLabel(hit) : String(v);
