@@ -553,12 +553,32 @@ function getBorderChars(style: string) {
 
 // --- Public API for mounting ---
 
-type KeyHandler = (key: string) => void;
-const keyHandlers = new Set<KeyHandler>();
+/**
+ * Key dispatch layers, highest priority first:
+ * - 'overlay' — transient UI that takes over navigation keys (suggestion
+ *   lists, dialogs) while letting everything else fall through;
+ * - 'control' — the focused control (default; components self-gate on focus);
+ * - 'view'    — view/navigation concerns (Esc pops a view stack);
+ * - 'global'  — app-wide shortcuts; the built-in Tab/Shift+Tab focus cycling
+ *   lives here, so any higher layer can consume Tab first.
+ */
+export type KeyLayer = 'overlay' | 'control' | 'view' | 'global';
 
-export function onKey(handler: KeyHandler) {
-    keyHandlers.add(handler);
-    return () => keyHandlers.delete(handler);
+/** Return strictly `true` to consume the key and stop dispatch. */
+export type KeyHandler = (key: string) => boolean | void;
+
+const KEY_LAYERS: readonly KeyLayer[] = ['overlay', 'control', 'view', 'global'];
+const keyHandlers: Record<KeyLayer, KeyHandler[]> = {
+    overlay: [], control: [], view: [], global: [],
+};
+
+export function onKey(handler: KeyHandler, opts?: { layer?: KeyLayer }) {
+    const layer = opts?.layer ?? 'control';
+    keyHandlers[layer].push(handler);
+    return () => {
+        const i = keyHandlers[layer].indexOf(handler);
+        if (i >= 0) keyHandlers[layer].splice(i, 1);
+    };
 }
 
 /**
@@ -579,21 +599,28 @@ function handleInput(key: string) {
         process.exit(130);
     }
 
-    // Tab navigation
-    if (key === '\t') {
-        focusNext();
-        return;
-    }
-    // Shift+Tab (often \x1b[Z)
-    if (key === '\x1b[Z') {
-        focusPrev();
-        return;
-    }
-
-    for (const handler of keyHandlers) {
-        handler(key);
+    // Layered dispatch: overlay → control → view → global; registration order
+    // within a layer; a handler returning strictly `true` consumes the key.
+    // Snapshot per layer so unsubscribing mid-dispatch is safe.
+    for (const layer of KEY_LAYERS) {
+        for (const handler of [...keyHandlers[layer]]) {
+            if (handler(key) === true) return;
+        }
     }
 }
+
+// Built-in focus cycling — the first 'global' handler, so overlays and
+// controls can consume Tab/Shift+Tab before it (e.g. completion-accept).
+onKey((key) => {
+    if (key === '\t') {
+        focusNext();
+        return true;
+    }
+    if (key === '\x1b[Z') {
+        focusPrev();
+        return true;
+    }
+}, { layer: 'global' });
 
 export interface RenderTerminalOptions {
     /** How the app paints; see {@link RenderMode}. Default 'inline'. */

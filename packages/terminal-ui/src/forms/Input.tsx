@@ -33,7 +33,10 @@ export const Input = component<
             }
             return;
         }
-        if (key.length > 1) return; // ignore control sequences
+        // Printable characters only — control bytes (incl. Tab, which now
+        // cascades through the key layers to the focus-cycle handler) and
+        // escape sequences are ignored.
+        if (key.length !== 1 || key < ' ') return;
 
         const newValue = getValue() + key;
         if (props.model) props.model.value = newValue;
