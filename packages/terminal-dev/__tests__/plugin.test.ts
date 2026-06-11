@@ -34,12 +34,17 @@ describe('terminalDevPlugin transform', () => {
         expect(result!.code).toContain(`__sigxRegisterHMRModule('/app/src/Label.tsx')`);
         expect(result!.code).toContain('import.meta.hot.accept()');
         expect(result!.code).toContain(COMPONENT_MODULE);
+        // The definition scope closes after the module body, before accept.
+        const clearAt = result!.code.indexOf(`__sigxClearHMRModule('/app/src/Label.tsx')`);
+        expect(clearAt).toBeGreaterThan(result!.code.indexOf('component('));
+        expect(clearAt).toBeLessThan(result!.code.indexOf('import.meta.hot.accept()'));
     });
 
     it('registers mount modules without a self-accept', () => {
         const result = transform(makePlugin(), MOUNT_MODULE, '/app/src/main.tsx');
         expect(result).not.toBeNull();
         expect(result!.code).toContain(`__sigxRegisterHMRModule('/app/src/main.tsx')`);
+        expect(result!.code).toContain(`__sigxClearHMRModule('/app/src/main.tsx')`);
         expect(result!.code).not.toContain('import.meta.hot.accept()');
     });
 

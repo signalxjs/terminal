@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { component, jsx } from '@sigx/runtime-core';
 import { signal } from '@sigx/reactivity';
 import { renderTerminal, setOutputTarget, type OutputTarget } from '@sigx/runtime-terminal';
-import { registerHMRModule } from '../src/hmr';
+import { clearHMRModule, registerHMRModule } from '../src/hmr';
 
 const flush = () => vi.advanceTimersByTime(20);
 
@@ -134,6 +134,26 @@ describe('hmr runtime', () => {
         const out = cap.output();
         expect(out).toContain('first-v2');
         expect(out).toContain('second-v2');
+    });
+
+    it('scopes identities to the module body: definitions after the clear get none', () => {
+        registerHMRModule('test:scope-mod');
+        const Scoped = component(() => () => jsx('text', { children: ['scoped'] }));
+        clearHMRModule('test:scope-mod');
+
+        // A component defined outside any instrumented module (externalized
+        // package, runtime callback) must not inherit the last module's id.
+        const Stray = component(() => () => jsx('text', { children: ['stray'] }));
+
+        expect((Scoped as any).__hmrId).toBe('test:scope-mod:0');
+        expect((Stray as any).__hmrId).toBeUndefined();
+
+        // Clearing under someone else's id must not clobber the active scope.
+        registerHMRModule('test:scope-mod2');
+        clearHMRModule('test:some-other-mod');
+        const StillScoped = component(() => () => jsx('text', { children: ['x'] }));
+        expect((StillScoped as any).__hmrId).toBe('test:scope-mod2:0');
+        clearHMRModule('test:scope-mod2');
     });
 
     it('stops tracking unmounted instances', () => {

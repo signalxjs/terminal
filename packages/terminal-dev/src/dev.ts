@@ -159,6 +159,13 @@ export async function startDev(options: DevOptions): Promise<DevHandle> {
             clearTimeout(restartTimer);
             restartTimer = null;
         }
+        // An in-flight restart may be mid clearCache/import; let it settle
+        // before tearing the runner and server down under it.
+        try {
+            await restarting;
+        } catch {
+            // importEntry reports its own errors; close() proceeds regardless.
+        }
         exitApp(runner);
         await runner.close();
         await server.close();

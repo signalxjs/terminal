@@ -126,15 +126,20 @@ export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugi
 
             if (!COMPONENT_RE.test(code)) return null;
 
+            const escapedId = moduleId.replace(/'/g, "\\'");
             const header =
-                `import { registerHMRModule as __sigxRegisterHMRModule } from '${toImportSpecifier(hmrRuntime)}';\n` +
-                `__sigxRegisterHMRModule('${moduleId.replace(/'/g, "\\'")}');\n`;
+                `import { registerHMRModule as __sigxRegisterHMRModule, clearHMRModule as __sigxClearHMRModule } from '${toImportSpecifier(hmrRuntime)}';\n` +
+                `__sigxRegisterHMRModule('${escapedId}');\n`;
 
+            // The definition scope closes after the module body, so later
+            // definitions from non-instrumented code can't inherit this id.
             // Mount modules get identity registration (their components are
             // still patchable when OTHER modules change) but no self-accept.
-            const footer = MOUNT_RE.test(code)
-                ? ''
-                : `\nif (import.meta.hot) {\n    import.meta.hot.accept();\n}\n`;
+            const footer =
+                `\n__sigxClearHMRModule('${escapedId}');\n` +
+                (MOUNT_RE.test(code)
+                    ? ''
+                    : `if (import.meta.hot) {\n    import.meta.hot.accept();\n}\n`);
 
             return { code: header + code + footer, map: null };
         },

@@ -55,6 +55,20 @@ export function registerHMRModule(moduleId: string): void {
     state.moduleComponentIndex.set(moduleId, 0);
 }
 
+/**
+ * Close `moduleId`'s definition scope. Injected by the dev plugin at the
+ * bottom of each transformed module, so a `component(...)` executed later
+ * from a NON-instrumented module (an externalized package, a runtime
+ * callback) can't be misattributed to the last instrumented module's
+ * identity counter. Guarded: an inner instrumented import has already
+ * shifted the current id, and must not be clobbered. (ESM evaluation order
+ * makes the common case safe — imports evaluate before the importer's body —
+ * so by the time this module's footer runs it IS the current one.)
+ */
+export function clearHMRModule(moduleId: string): void {
+    if (state.currentModuleId === moduleId) state.currentModuleId = null;
+}
+
 function getNextComponentId(): string | null {
     if (!state.currentModuleId) return null;
     const index = state.moduleComponentIndex.get(state.currentModuleId) ?? 0;
