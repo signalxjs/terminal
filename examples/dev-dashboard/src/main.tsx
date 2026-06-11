@@ -53,8 +53,8 @@ const Dashboard = component(() => {
         const logHeight = Math.max(6, getOutputTarget().rows - 12);
         return (
             <box>
-                <Gradient text="sigx dev · my-lynx-app" preset="sigx" />
-                <text color={resolveColor('dim')}>{BUNDLE_URL}</text>
+                <box><Gradient text="sigx dev · my-lynx-app" preset="sigx" /></box>
+                <box><text color={resolveColor('dim')}>{BUNDLE_URL}</text></box>
                 <box></box>
                 <Tabs
                     model={tab}
