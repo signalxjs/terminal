@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, type Define } from '@sigx/runtime-core';
-import { resolveColor, getOutputTarget, truncateToWidth } from '@sigx/terminal-zero';
+import { resolveColor, getTerminalSize, truncateToWidth } from '@sigx/terminal-zero';
 import type { LogStore } from './logStore';
 
 /**
@@ -25,7 +25,7 @@ export const LogPanel = component<
 >(({ props }) => {
     return () => {
         const height = props.height || 6;
-        const width = props.width || Math.max(20, getOutputTarget().columns - 4);
+        const width = props.width || Math.max(20, getTerminalSize().columns - 4);
         const variant = props.variant || 'bar';
         const textColor = resolveColor(props.color || 'dim');
         // Box borders keep the `line` token (drawn on the themed canvas), but

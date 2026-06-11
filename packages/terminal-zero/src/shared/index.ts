@@ -48,6 +48,13 @@ export {
     resolveBg,
 } from '@sigx/runtime-terminal';
 
+// Reactive terminal size — read it in a render function to re-render on
+// resize (getOutputTarget().columns/rows are live but not reactive).
+export {
+    getTerminalSize,
+    syncTerminalSize,
+} from '@sigx/runtime-terminal';
+
 export * from './colorMath';
 export * from './ticker';
 export * from './textBuffer';

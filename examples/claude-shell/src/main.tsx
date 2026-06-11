@@ -12,7 +12,7 @@ import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
     TextArea, SuggestionList, Select, Divider, KeyHints, Shimmer,
     renderPixelArt, createViewStack, onKey, isEsc, printStatic, paintToken,
-    resolveColor, getOutputTarget, setTheme, listThemes, getTheme,
+    resolveColor, getTerminalSize, layoutText, setTheme, listThemes, getTheme,
 } from '@sigx/terminal';
 import { LOGO_ROWS, LOGO_PALETTE } from './logo';
 import { COMMANDS, MODELS, FAKE_REPLIES } from './commands';
@@ -29,8 +29,13 @@ const Shell = component(() => {
     let replyTimer: ReturnType<typeof setTimeout> | null = null;
 
     const say = (text = '') => {
-        printStatic(text);
+        // ORDER MATTERS: bump the counter FIRST. The signal write re-renders
+        // this component synchronously, shrinking the filler in the tree —
+        // so printStatic's immediate repaint uses the already-shrunk region
+        // and the transcript never pushes the viewport into a spurious
+        // scroll (which would creep lines off the top on every message).
         transcript.lines += text.split('\n').length;
+        printStatic(text);
     };
 
     const transcriptHeader = () => {
@@ -116,8 +121,7 @@ const Shell = component(() => {
     });
 
     return () => {
-        const target = getOutputTarget();
-        const cols = target.columns;
+        const { columns: cols, rows } = getTerminalSize(); // reactive: resizes re-render
         const suggestions = input.value.startsWith('/')
             ? COMMANDS.filter((c) => c.value.startsWith(input.value.trim().split(/\s/)[0]))
             : [];
@@ -125,12 +129,20 @@ const Shell = component(() => {
         // Bottom anchor: until the transcript fills the viewport, blank rows
         // above the input area pin it to the bottom of the screen. Once the
         // conversation is taller than the window the filler is 0 and natural
-        // scrollback flow takes over. ~4 = divider + input row + hints + slack.
-        const chrome = 4 + suggestions.length;
-        const filler = Math.max(0, target.rows - transcript.lines - chrome);
-        const gap = Array.from({ length: filler }, () => <box><text> </text></box>);
+        // scrollback flow takes over. The input area's height is measured
+        // with the same layout the TextArea uses, so growth while typing
+        // shrinks the gap instead of pushing the transcript off-screen.
+        const MAX_INPUT_ROWS = 8;
+        const innerWidth = Math.max(4, Math.max(20, cols - 4) - 2);
+        const inputRows = Math.min(MAX_INPUT_ROWS, layoutText(input.value, innerWidth).rows.length);
+        const mkGap = (chromeRows: number) => {
+            const filler = Math.max(0, rows - transcript.lines - chromeRows - 1 /* slack */);
+            return Array.from({ length: filler }, () => <box><text> </text></box>);
+        };
 
         if (views.current() === 'model') {
+            // divider + bordered select (options + 2) + description + hints
+            const gap = mkGap(1 + MODELS.length + 2 + 1 + 1);
             return (
                 <box>
                     {gap}
@@ -156,6 +168,7 @@ const Shell = component(() => {
             );
         }
 
+        const gap = mkGap(1 /* divider */ + inputRows + suggestions.length + 1 /* hints */);
         return (
             <box>
                 {gap}
@@ -164,7 +177,7 @@ const Shell = component(() => {
                     autofocus
                     model={() => input.value}
                     placeholder="message, or / for commands"
-                    maxRows={8}
+                    maxRows={MAX_INPUT_ROWS}
                     onSubmit={submit}
                 />
                 {suggestions.length > 0 && <SuggestionList

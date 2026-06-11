@@ -2,7 +2,7 @@
 import { component, onMounted, onUnmounted, signal, type Define } from '@sigx/runtime-core';
 import {
     onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor,
-    getOutputTarget, GLYPHS, READY_DELAY_MS,
+    getTerminalSize, GLYPHS, READY_DELAY_MS,
     layoutText, cursorToRowCol, insertAt, deleteBefore, deleteAt,
     moveLeft, moveRight, moveVertical, moveLineStart, moveLineEnd,
     type TextBufferState,
@@ -46,7 +46,7 @@ export const TextArea = component<
     const state = signal({ cursor: 0, goalCol: -1 });
 
     const getValue = () => props.model?.value ?? '';
-    const innerWidth = () => Math.max(4, (props.width || Math.max(20, getOutputTarget().columns - 4)) - 2);
+    const innerWidth = () => Math.max(4, (props.width || Math.max(20, getTerminalSize().columns - 4)) - 2);
 
     const buf = (): TextBufferState => {
         const text = getValue();

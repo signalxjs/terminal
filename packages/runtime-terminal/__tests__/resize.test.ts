@@ -48,6 +48,26 @@ describe('resize handling', () => {
         expect(out).toContain('full');
     });
 
+    it('getTerminalSize is reactive: components re-render with new dimensions', async () => {
+        const { jsx, component } = await import('@sigx/runtime-core');
+        const { getTerminalSize } = await import('../src');
+        const cap = captureOutput({ columns: 30, rows: 10 });
+        const SizeBadge = component(() => () => {
+            const { columns, rows } = getTerminalSize();
+            return jsx('text', { children: `size:${columns}x${rows}` });
+        }, { name: 'SizeBadge' });
+        unmount = renderTerminal(jsx(SizeBadge, {}), { patchConsole: false }).unmount;
+        flush();
+        expect(cap.output()).toContain('size:30x10');
+
+        cap.clear();
+        cap.target.columns = 50;
+        cap.target.rows = 20;
+        process.stdout.emit('resize');
+        flush();
+        expect(cap.output()).toContain('size:50x20'); // component re-rendered, not just re-flushed
+    });
+
     it('stops listening after unmount', () => {
         const cap = captureOutput();
         const app = linesApp(['gone']);

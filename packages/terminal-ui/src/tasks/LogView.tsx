@@ -2,7 +2,7 @@
 import { component, onMounted, onUnmounted, signal, type Define } from '@sigx/runtime-core';
 import {
     onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor,
-    getOutputTarget, truncateToWidth, displayWidth, READY_DELAY_MS,
+    getTerminalSize, truncateToWidth, displayWidth, READY_DELAY_MS,
 } from '@sigx/terminal-zero';
 import type { LogStore } from './logStore';
 
@@ -109,7 +109,7 @@ export const LogView = component<
     return () => {
         const focused = isFocused();
         const height = getHeight();
-        const width = props.width || Math.max(20, getOutputTarget().columns - 4);
+        const width = props.width || Math.max(20, getTerminalSize().columns - 4);
         const all = src();
         const total = all.length;
         const off = effOffset(total);

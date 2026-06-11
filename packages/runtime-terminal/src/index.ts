@@ -1,4 +1,5 @@
 import { createRenderer, RendererOptions, setDefaultMount } from '@sigx/runtime-core/internals';
+import { signal } from '@sigx/reactivity';
 import { focusNext, focusPrev } from './focus';
 import { displayWidth, truncateToWidth } from './utils';
 import { resolveFg, resolveBg } from './color';
@@ -729,6 +730,10 @@ function setupTerminal(options: RenderTerminalOptions = {}): TerminalNode {
     lastFrameLines = [];
     pendingStatic = [];
 
+    // Pick up the mount target's dimensions (tests/embedders may have swapped
+    // the output target since module load).
+    syncTerminalSize();
+
     // Interactive stdin only. Unconditionally resuming a piped stdin would
     // keep the process alive (and feed pipe data to the key handler).
     stdinActive = false;
@@ -810,7 +815,38 @@ function handleResize(): void {
         // repaint, which can leave a stale fragment.)
         getOutputTarget().write('\x1B[2J\x1B[H');
     }
+    // Update the reactive size so components that derive layout from the
+    // terminal dimensions re-render (a bare flush only re-serializes the
+    // existing tree).
+    const target = getOutputTarget();
+    sizeState.columns = target.columns;
+    sizeState.rows = target.rows;
     scheduleRender();
+}
+
+// Reactive terminal size. getOutputTarget().columns/rows are live but NOT
+// reactive — a component reading them computes its layout once and never
+// re-renders on resize. Reading getTerminalSize() inside a render function
+// tracks it, so resizes re-render the component.
+const sizeState = signal({
+    columns: getOutputTarget().columns,
+    rows: getOutputTarget().rows,
+});
+
+/**
+ * The terminal dimensions as a reactive read: components that call this in
+ * their render function re-render when the terminal is resized. Prefer this
+ * over `getOutputTarget().columns/rows` for anything layout-related.
+ */
+export function getTerminalSize(): { columns: number; rows: number } {
+    return { columns: sizeState.columns, rows: sizeState.rows };
+}
+
+/** Test/embedder seam: force the reactive size (e.g. after setOutputTarget). */
+export function syncTerminalSize(): void {
+    const target = getOutputTarget();
+    sizeState.columns = target.columns;
+    sizeState.rows = target.rows;
 }
 
 export function renderTerminal(app: any, options: RenderTerminalOptions = {}) {
