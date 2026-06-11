@@ -40,6 +40,7 @@ const PACKAGES = [
     'packages/terminal-zero',
     'packages/terminal-ui',
     'packages/terminal',
+    'packages/terminal-dev',
 ];
 
 const args = process.argv.slice(2);

@@ -1,0 +1,63 @@
+{
+    "name": "@sigx/terminal-dev",
+    "version": "0.5.0",
+    "description": "HMR dev runner for SignalX terminal apps - edit components, see the running TUI update live",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "sigx-terminal-dev": "./bin/sigx-terminal-dev.mjs"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./hmr": {
+            "import": "./dist/hmr.js",
+            "types": "./dist/hmr.d.ts"
+        }
+    },
+    "files": [
+        "dist",
+        "bin"
+    ],
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "dev": "vite build --watch"
+    },
+    "keywords": [
+        "sigx",
+        "signalx",
+        "terminal",
+        "tui",
+        "hmr",
+        "vite",
+        "dev-server"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/terminal.git",
+        "directory": "packages/terminal-dev"
+    },
+    "homepage": "https://sigx.dev/terminal/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/terminal/issues"
+    },
+    "dependencies": {
+        "@sigx/runtime-core": "^0.4.9",
+        "vite": "^8.0.3"
+    },
+    "devDependencies": {
+        "@sigx/reactivity": "^0.4.9",
+        "@sigx/runtime-terminal": "workspace:^",
+        "@sigx/vite": "^0.4.7",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

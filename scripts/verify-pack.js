@@ -37,6 +37,7 @@ const PACKAGES = [
     'packages/terminal-zero',
     'packages/terminal-ui',
     'packages/terminal',
+    'packages/terminal-dev',
 ];
 
 const sandbox = join(tmpdir(), `sigx-terminal-verify-pack-${Date.now()}`);
@@ -161,6 +162,18 @@ function main() {
             'export type _Renderer = [typeof renderTerminal, typeof writeStatic, typeof setOutputTarget];',
             'export type _Zero = [typeof resolveColor, typeof setTheme, typeof GLYPHS];',
             'export type _Components = [typeof Input, typeof Select, typeof Checkbox, typeof ProgressBar, typeof Spinner, typeof TaskList, typeof LogPanel, typeof Gradient, typeof createLogStore];',
+            '',
+        ].join('\n')
+    );
+
+    // The dev tooling package: the Vite plugin, dev runner and HMR runtime
+    // (incl. the ./hmr subpath export) as published units.
+    writeFileSync(
+        join(appDir, 'src', 'dev-check.ts'),
+        [
+            "import { startDev, terminalDevPlugin } from '@sigx/terminal-dev';",
+            "import { registerHMRModule, installHMRPlugin } from '@sigx/terminal-dev/hmr';",
+            'export type _Dev = [typeof startDev, typeof terminalDevPlugin, typeof registerHMRModule, typeof installHMRPlugin];',
             '',
         ].join('\n')
     );
