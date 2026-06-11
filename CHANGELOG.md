@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `runtime-terminal`: layered key dispatch — `onKey(handler, { layer })` with `'overlay' | 'control' | 'view' | 'global'` layers; a handler returning strictly `true` consumes the key and stops dispatch. Built-in Tab/Shift+Tab focus cycling moved into the first `'global'` handler so overlays/controls can consume Tab first. Bare `onKey(handler)` is unchanged (default layer `'control'`, void return cascades).
+- `terminal-zero`: headless `textBuffer` (soft-wrap layout + code-point cursor math for multi-line editors, wide-glyph aware) and `createViewStack` (reactive push/pop navigation with an Esc-pop pattern).
+- `terminal-ui`: `TextArea` (growing multi-line input — wraps, grows to `maxRows`, movable block cursor, Enter submits, `\`+Enter / Ctrl+J newline), `SuggestionList` (overlay intellisense consuming only navigation keys), `PixelArt` / `renderPixelArt` (half-block pixel logos).
+- `examples/claude-shell` (`pnpm claude-shell`): assistant-shell demo — pixel logo + scrollback transcript, `/` command intellisense, Esc-poppable model picker.
+
+### Changed
+
+- `terminal-ui` `Input` ignores all control bytes (a cascading Tab could previously be appended as a literal character).
+
 ## [0.4.4] - 2026-05-13
 
 ### Changed
