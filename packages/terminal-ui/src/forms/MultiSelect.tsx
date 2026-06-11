@@ -8,8 +8,13 @@ export interface MultiSelectOption<T = string> {
     label: string;
     value: T;
     description?: string;
-    // Planned extension (not yet rendered): `group?: string` section headers,
-    // for pickers like "connected devices / available to boot".
+    /**
+     * Section header rendered above this option when it differs from the
+     * previous option's group (e.g. "connected devices" / "available to
+     * boot"). Purely visual — the cursor skips headers and indexes stay
+     * option-based. Pre-sort options by group.
+     */
+    group?: string;
 }
 
 /**
@@ -94,10 +99,14 @@ export const MultiSelect = component<
         const focused = isFocused();
         const checked = getChecked();
 
-        const rows = options.map((option, i) => {
+        const rows = options.flatMap((option, i) => {
             const onCursor = i === state.cursor;
             const isChecked = checked.includes(option.value);
-            return (
+            const header = option.group && option.group !== options[i - 1]?.group
+                ? [<box><text color={resolveColor('dim')}>{option.group}</text></box>]
+                : [];
+            return [
+                ...header,
                 <box>
                     <text color={resolveColor('accent')}>{onCursor ? GLYPHS.cursor : ' '} </text>
                     <text color={resolveColor(isChecked ? 'success' : 'line')}>
@@ -105,8 +114,8 @@ export const MultiSelect = component<
                     </text>
                     <text color={resolveColor(onCursor ? 'accent' : 'fg')}> {option.label}</text>
                     {option.description && onCursor && <text color={resolveColor('dim')}> — {option.description}</text>}
-                </box>
-            );
+                </box>,
+            ];
         });
 
         const hint = state.requiredHint

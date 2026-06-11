@@ -144,6 +144,27 @@ describe('imperative prompts', () => {
         expect(cap.output()).toContain('eslint, vitest');
     });
 
+    it('multiselect: renders group headers and toggling spans them', async () => {
+        const cap = captureOutput();
+        const p = multiselect({
+            message: 'Devices',
+            options: [
+                { value: 'iphone', label: 'iPhone 15', group: 'connected' },
+                { value: 'avd', label: 'Pixel AVD', group: 'available' },
+            ],
+        });
+        await settle();
+        const out = cap.output();
+        expect(out.indexOf('connected')).toBeLessThan(out.indexOf('iPhone 15'));
+        expect(out.indexOf('available')).toBeLessThan(out.indexOf('Pixel AVD'));
+
+        await press(' ');
+        await press(DOWN);
+        await press(' ');
+        await press(ENTER);
+        expect(await p).toEqual(['iphone', 'avd']);
+    });
+
     it('multiselect: a selects all, a again clears', async () => {
         captureOutput();
         const p = multiselect({

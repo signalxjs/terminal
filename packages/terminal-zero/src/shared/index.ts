@@ -41,6 +41,7 @@ export {
 
 export * from './colorMath';
 export * from './ticker';
+export { generateQR } from './qr';
 
 /**
  * Standard glyphs. All are width-1 in monospace fonts (Braille, geometric,

@@ -8,6 +8,11 @@ export interface PromptOption<T> {
     /** Defaults to String(value). */
     label?: string;
     description?: string;
+    /**
+     * Section header rendered above this option when it differs from the
+     * previous option's group (multiselect only; pre-sort options by group).
+     */
+    group?: string;
 }
 
 export function optionLabel<T>(option: PromptOption<T>): string {

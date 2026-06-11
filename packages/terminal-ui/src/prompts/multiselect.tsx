@@ -86,19 +86,25 @@ export function multiselect<T = string>(opts: MultiSelectPromptOptions<T>): Prom
                     message: opts.message,
                     error: state.requiredHint ? 'select at least one option (space)' : undefined,
                     footer: 'space toggle · a all · enter confirm',
-                    rows: opts.options.map((option, i) => {
+                    rows: opts.options.flatMap((option, i) => {
                         const onCursor = i === state.cursor;
                         const isChecked = state.checked.has(option.value);
-                        return promptRow(
-                            <text>
-                                <text color={resolveColor(onCursor ? 'accent' : 'faint')}>{onCursor ? GLYPHS.cursor : ' '} </text>
-                                <text color={resolveColor(isChecked ? 'success' : 'line')}>
-                                    {isChecked ? GLYPHS.checkboxOn : GLYPHS.checkboxOff}
-                                </text>
-                                <text color={resolveColor(onCursor ? 'accent' : 'fg')}> {optionLabel(option)}</text>
-                                {option.description && onCursor && <text color={resolveColor('dim')}> — {option.description}</text>}
-                            </text>,
-                        );
+                        const header = option.group && option.group !== opts.options[i - 1]?.group
+                            ? [promptRow(<text color={resolveColor('dim')}>{option.group}</text>)]
+                            : [];
+                        return [
+                            ...header,
+                            promptRow(
+                                <text>
+                                    <text color={resolveColor(onCursor ? 'accent' : 'faint')}>{onCursor ? GLYPHS.cursor : ' '} </text>
+                                    <text color={resolveColor(isChecked ? 'success' : 'line')}>
+                                        {isChecked ? GLYPHS.checkboxOn : GLYPHS.checkboxOff}
+                                    </text>
+                                    <text color={resolveColor(onCursor ? 'accent' : 'fg')}> {optionLabel(option)}</text>
+                                    {option.description && onCursor && <text color={resolveColor('dim')}> — {option.description}</text>}
+                                </text>,
+                            ),
+                        ];
                     }),
                 });
             }, { name: 'MultiSelectPrompt' });

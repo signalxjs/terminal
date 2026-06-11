@@ -73,6 +73,41 @@ describe('MultiSelect / Confirm / KeyHints components', () => {
         expect(submitted).toEqual([[ 'x', 'y' ]]);
     });
 
+    it('MultiSelect renders group headers without shifting option indexes', async () => {
+        const cap = captureOutput();
+        const state = signal({ picked: [] as string[] });
+        const submitted: string[][] = [];
+        unmount = renderTerminal(
+            jsx(MultiSelect, {
+                options: [
+                    { label: 'iPhone 15', value: 'iphone', group: 'connected' },
+                    { label: 'Pixel 8', value: 'pixel', group: 'connected' },
+                    { label: 'iPhone SE sim', value: 'se', group: 'available to boot' },
+                ],
+                autofocus: true,
+                model: () => state.picked,
+                onSubmit: (v: string[]) => submitted.push(v),
+            }),
+            { patchConsole: false },
+        ).unmount;
+        await settle();
+
+        const out = cap.output();
+        const connected = out.indexOf('connected');
+        const available = out.indexOf('available to boot');
+        expect(connected).toBeGreaterThan(-1);
+        expect(available).toBeGreaterThan(out.indexOf('Pixel 8')); // header sits before its section
+        expect(connected).toBeLessThan(out.indexOf('iPhone 15'));
+
+        // Headers are visual only: cursor still walks options 0→1→2.
+        await press(' ');           // toggle iphone
+        await press(DOWN);
+        await press(DOWN);
+        await press(' ');           // toggle se (third option, across the header)
+        await press('\r');
+        expect(submitted).toEqual([[ 'iphone', 'se' ]]);
+    });
+
     it('Confirm answers y/n immediately and toggles with arrows', async () => {
         captureOutput();
         const state = signal({ ok: true });
