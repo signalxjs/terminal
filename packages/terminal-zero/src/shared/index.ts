@@ -37,10 +37,21 @@ export {
     renderTerminal,
     dispatchKey,
     type RenderTerminalOptions,
+    type KeyLayer,
+    type KeyHandler,
+} from '@sigx/runtime-terminal';
+
+// Cell measurement + background SGR for components that build their own
+// escape strings (text buffers, pixel art).
+export {
+    charWidth,
+    resolveBg,
 } from '@sigx/runtime-terminal';
 
 export * from './colorMath';
 export * from './ticker';
+export * from './textBuffer';
+export * from './viewStack';
 export { generateQR } from './qr';
 
 /**

@@ -10,6 +10,7 @@ root** (after `pnpm install`):
 | `pnpm build-sim` | `build-sim/` | A lynx-style build pipeline: `TaskList` + streaming `LogPanel` tail, steps collapsing to permanent `✔` lines |
 | `pnpm inline-counter` | `inline-counter/` | Inline render mode: live region below your prompt, scrollback untouched, final frame persists on exit |
 | `pnpm dashboard` | `dev-dashboard/` | Persistent dev-server TUI: tabs, always-ready QR code, scrollable live LogView, KeyHints, Row layout |
+| `pnpm claude-shell` | `claude-shell/` | Assistant shell: pixel logo, scrollback transcript, growing TextArea, / intellisense, Esc-poppable views |
 | `pnpm static-log` | `static-log/` | `printStatic` + console patching: permanent lines scrolling above a live spinner |
 
 Each example also runs directly from its own folder:
