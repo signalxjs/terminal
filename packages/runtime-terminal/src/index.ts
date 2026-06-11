@@ -180,6 +180,12 @@ function flushRender() {
     const fg = canvasEnabled && screenFgColor ? resolveFg(screenFgColor) : '';
     const base = bg + fg;
 
+    // Truncate to the terminal width in BOTH modes, before any canvas
+    // backing (the pad math needs the final visible width). Inline needs it
+    // for the cursor-up arithmetic; fullscreen needs it because a soft-wrapped
+    // line (e.g. a wide <row>) would shear every following row of the frame.
+    lines = lines.map((l) => truncateToWidth(l, cols));
+
     if (base) {
         // Back each rendered line with the themed canvas: pad to the terminal
         // width, re-asserting the base colors after any inner reset.
@@ -207,10 +213,9 @@ function flushRender() {
         return;
     }
 
-    // Inline: repaint only the live region. Truncate to the terminal width
-    // (a soft-wrapped line would desync the cursor-up math) and clamp tall
-    // frames to their bottom rows (the active part of a live CLI UI).
-    lines = lines.map((l) => truncateToWidth(l, cols));
+    // Inline: repaint only the live region (lines already width-truncated
+    // above); clamp tall frames to their bottom rows (the active part of a
+    // live CLI UI).
     const rows = target.rows;
     if (lines.length > rows) lines = lines.slice(-rows);
 
@@ -268,17 +273,70 @@ export function writeStatic(text: string): void {
 export const printStatic = writeStatic;
 
 
+// Tags that always start on their own line(s).
+const BLOCK_TAGS = new Set(['box', 'row']);
+
 /**
- * Check if a node has a box element as an immediate child.
- * This is used to determine if a component wrapper should be treated as a block element.
+ * Check if a node has a block element (box/row) as an immediate child.
+ * This is used to determine if a component wrapper should be treated as a
+ * block element. Immediate children only, on purpose.
  */
-function hasBoxChild(node: TerminalNode): boolean {
+function hasBlockChild(node: TerminalNode): boolean {
     for (const child of node.children) {
-        if (child.tag === 'box') {
+        if (child.tag !== undefined && BLOCK_TAGS.has(child.tag)) {
             return true;
         }
     }
     return false;
+}
+
+/**
+ * Merge a <row>'s children side by side: every renderable child (element or
+ * text node) becomes a column; columns are padded to their own max display
+ * width and zipped line by line.
+ *
+ * Two invariants keep this composable with the rest of the pipeline:
+ * - cells containing SGR escapes are reset-terminated, so colors can't bleed
+ *   into the padding/gap/next column — and the themed canvas + drawBox, which
+ *   split on `\x1b[0m` to re-assert their colors, keep working;
+ * - all measurement is in display cells (wide glyphs = 2), never `.length`.
+ *
+ * A row wider than the terminal clips at the right edge (the flush paths
+ * truncate escape-aware); put the column that must stay intact leftmost.
+ */
+function renderRow(node: TerminalNode): string[] {
+    const gap = Math.max(0, Number(node.props.gap ?? 2));
+    const align: 'top' | 'center' | 'bottom' = node.props.align ?? 'top';
+
+    const cols: string[][] = [];
+    for (const child of node.children) {
+        if (child.type === 'comment') continue;
+        cols.push(child.type === 'text' ? [child.text ?? ''] : renderNodeToLines(child));
+    }
+    if (cols.length === 0) return [''];
+
+    const widths = cols.map((c) => c.reduce((max, l) => Math.max(max, displayWidth(l)), 0));
+    const height = Math.max(...cols.map((c) => c.length));
+    const offsets = cols.map((c) =>
+        align === 'bottom' ? height - c.length
+            : align === 'center' ? Math.floor((height - c.length) / 2)
+            : 0);
+
+    const sep = ' '.repeat(gap);
+    const out: string[] = [];
+    for (let j = 0; j < height; j++) {
+        const parts: string[] = [];
+        for (let i = 0; i < cols.length; i++) {
+            let cell = cols[i][j - offsets[i]] ?? '';
+            if (cell.includes('\x1b[') && !cell.endsWith('\x1b[0m')) {
+                cell += '\x1b[0m';
+            }
+            parts.push(cell + ' '.repeat(Math.max(0, widths[i] - displayWidth(cell))));
+        }
+        // Only plain pad spaces can trail, so trimming is safe and keeps lines lean.
+        out.push(parts.join(sep).trimEnd());
+    }
+    return out;
 }
 
 export function renderNodeToLines(node: TerminalNode): string[] {
@@ -288,6 +346,10 @@ export function renderNodeToLines(node: TerminalNode): string[] {
     }
     if (node.type === 'comment') {
         return [];
+    }
+    if (node.tag === 'row') {
+        // Pure layout: columns merge side by side, no color-prefix inheritance.
+        return renderRow(node);
     }
 
     let lines: string[] = [''];
@@ -312,10 +374,10 @@ export function renderNodeToLines(node: TerminalNode): string[] {
             // Recursively render child
             const childLines = renderNodeToLines(child);
 
-            // Check if this child contains a box element (making it a block)
-            // A box is always a block element, and component wrappers that contain
-            // a box should also be treated as blocks
-            const isBlockElement = child.tag === 'box' || hasBoxChild(child);
+            // Check if this child is (or contains) a block element. Boxes and
+            // rows are always blocks, and component wrappers that contain one
+            // should also be treated as blocks.
+            const isBlockElement = (child.tag !== undefined && BLOCK_TAGS.has(child.tag)) || hasBlockChild(child);
 
             if (isBlockElement) {
                 // Block element - start on a new line
@@ -813,6 +875,15 @@ declare global {
             box: TerminalAttributes;
             text: TerminalAttributes;
             br: TerminalAttributes;
+            row: RowAttributes;
+        }
+
+        interface RowAttributes {
+            /** Columns of spacing between cells. Default 2. */
+            gap?: number;
+            /** Vertical alignment of shorter columns. Default 'top'. */
+            align?: 'top' | 'center' | 'bottom';
+            children?: any;
         }
 
         interface TerminalAttributes {
