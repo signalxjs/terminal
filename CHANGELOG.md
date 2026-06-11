@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **`@sigx/terminal-dev` — HMR dev mode** (#45): `sigx-terminal-dev <entry>` (and root `pnpm dev` for the showcase) runs a terminal app under an in-process Vite dev server with hot module replacement. Saving a component module patches live instances in place (new setup re-runs against the existing context, the renderer repaints — no teardown, surrounding state intact); saving the mount module (or a module nothing accepts) restarts the app in-process with a clean terminal teardown first; a broken edit reports the error and recovers on the next successful save. Ships a `terminalDevPlugin()` Vite plugin, a programmatic `startDev()`, and an HMR runtime (`@sigx/terminal-dev/hmr`) that hooks `@sigx/runtime-core` component definitions.
+
 ## [0.5.0] - 2026-06-12
 
 First lockstep release of the four-package design system. New packages: `@sigx/terminal-zero` (headless foundation) and `@sigx/terminal-ui` (SigX-tui skin).

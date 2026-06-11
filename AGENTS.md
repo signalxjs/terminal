@@ -106,7 +106,10 @@ To run a package script: `pnpm --filter <package-name> <script>`.
 ## Packages
 
 - `packages/runtime-terminal` → `@sigx/runtime-terminal` — Terminal renderer for SignalX.
+- `packages/terminal-zero` → `@sigx/terminal-zero` — Headless design-system foundation (theme engine, tokens, layout, prompts engine).
+- `packages/terminal-ui` → `@sigx/terminal-ui` — Themed component library (SigX-tui skin).
 - `packages/terminal` → `@sigx/terminal` — SignalX Terminal - TUI framework with TSX support.
+- `packages/terminal-dev` → `@sigx/terminal-dev` — HMR dev runner: `sigx-terminal-dev` bin, Vite plugin, HMR runtime.
 
 ## Parallel work with git worktrees
 

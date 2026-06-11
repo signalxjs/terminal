@@ -17,7 +17,10 @@ Full guides, API reference and live examples → **<https://sigx.dev/terminal/>*
 | Package | Description |
 | --- | --- |
 | [`@sigx/terminal`](./packages/terminal) | Public entry: re-exports reactivity, runtime-core and the terminal renderer + components. Set `jsxImportSource: "@sigx/terminal"` to use TSX. |
-| [`@sigx/runtime-terminal`](./packages/runtime-terminal) | The terminal renderer + built-in components (`Input`, `Button`, `Select`, `Checkbox`, `ProgressBar`). |
+| [`@sigx/runtime-terminal`](./packages/runtime-terminal) | The terminal renderer: render modes, key dispatch, color depth, output targets. |
+| [`@sigx/terminal-zero`](./packages/terminal-zero) | Headless design-system foundation: theme engine, token contract, layout primitives, prompts engine. |
+| [`@sigx/terminal-ui`](./packages/terminal-ui) | Themed component library (SigX-tui skin): forms, feedback, navigation, data, fx, tasks. |
+| [`@sigx/terminal-dev`](./packages/terminal-dev) | HMR dev runner: `sigx-terminal-dev` runs your app under Vite — save a component, the running TUI updates in place. |
 
 ## Install
 
