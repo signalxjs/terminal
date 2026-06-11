@@ -29,7 +29,8 @@
     "version:major": "node scripts/bump-version.js major",
     "clean": "node -e \"const fs=require('fs'),p=require('path');const rm=x=>fs.rmSync(x,{recursive:true,force:true});for(const d of fs.readdirSync('packages')){rm(p.join('packages',d,'dist'));rm(p.join('packages',d,'node_modules'));}rm('node_modules');rm('pnpm-lock.yaml');\"",
     "dashboard": "cd examples/dev-dashboard && node --import tsx src/main.tsx",
-    "claude-shell": "cd examples/claude-shell && node --import tsx src/main.tsx"
+    "claude-shell": "cd examples/claude-shell && node --import tsx src/main.tsx",
+    "version:check": "node scripts/check-versions.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
