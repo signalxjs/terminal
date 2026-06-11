@@ -247,8 +247,12 @@ export function writeStatic(text: string): void {
         return;
     }
 
+    // Normalize ONE trailing newline away ('foo\n' prints one line) — but an
+    // empty string is a deliberate blank line, not a trailing newline, so it
+    // must still print (transcripts use writeStatic('') as a spacer; dropping
+    // it desyncs any app-side line accounting).
     const lines = text.split('\n');
-    if (lines[lines.length - 1] === '') lines.pop();
+    if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
 
     if (mode === 'fullscreen') {
         pendingStatic.push(...lines);
