@@ -72,6 +72,20 @@ function defaultHmrRuntime(): string {
     return '@sigx/terminal-dev/hmr';
 }
 
+/**
+ * Turn the runtime location into a valid import specifier. Absolute fs paths
+ * (notably Windows drive paths like `C:/…`) are not portable module
+ * specifiers, so they're injected in Vite's explicit fs-path form
+ * (`/@fs/C:/…` / `/@fs/home/…`); bare specifiers pass through.
+ */
+function toImportSpecifier(runtime: string): string {
+    // Platform-agnostic on purpose: a windows drive path must be recognized
+    // even when this code runs under a posix `path` (and vice versa).
+    const isAbsolute = path.isAbsolute(runtime) || /^[A-Za-z]:[\\/]/.test(runtime);
+    if (!isAbsolute) return runtime;
+    return '/@fs/' + runtime.replace(/\\/g, '/').replace(/^\//, '');
+}
+
 export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugin {
     const { hmr = true } = options;
     const hmrRuntime = options.hmrRuntime ?? defaultHmrRuntime();
@@ -113,7 +127,7 @@ export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugi
             if (!COMPONENT_RE.test(code)) return null;
 
             const header =
-                `import { registerHMRModule as __sigxRegisterHMRModule } from '${hmrRuntime}';\n` +
+                `import { registerHMRModule as __sigxRegisterHMRModule } from '${toImportSpecifier(hmrRuntime)}';\n` +
                 `__sigxRegisterHMRModule('${moduleId.replace(/'/g, "\\'")}');\n`;
 
             // Mount modules get identity registration (their components are

@@ -48,6 +48,23 @@ describe('terminalDevPlugin transform', () => {
         expect(result!.code).toContain(`__sigxRegisterHMRModule('C:/app/src/Label.tsx')`);
     });
 
+    it('injects absolute runtime paths as /@fs/ specifiers, bare specifiers as-is', () => {
+        const winPlugin = terminalDevPlugin({ hmrRuntime: 'C:\\pkg\\dist\\hmr.js' });
+        (winPlugin.config as any)({}, { command: 'serve', mode: 'development' });
+        expect(transform(winPlugin, COMPONENT_MODULE, '/app/src/Label.tsx')!.code)
+            .toContain(`from '/@fs/C:/pkg/dist/hmr.js'`);
+
+        const posixPlugin = terminalDevPlugin({ hmrRuntime: '/pkg/dist/hmr.js' });
+        (posixPlugin.config as any)({}, { command: 'serve', mode: 'development' });
+        expect(transform(posixPlugin, COMPONENT_MODULE, '/app/src/Label.tsx')!.code)
+            .toContain(`from '/@fs/pkg/dist/hmr.js'`);
+
+        const barePlugin = terminalDevPlugin({ hmrRuntime: '@sigx/terminal-dev/hmr' });
+        (barePlugin.config as any)({}, { command: 'serve', mode: 'development' });
+        expect(transform(barePlugin, COMPONENT_MODULE, '/app/src/Label.tsx')!.code)
+            .toContain(`from '@sigx/terminal-dev/hmr'`);
+    });
+
     it('leaves modules without components untouched', () => {
         expect(transform(makePlugin(), `export const n = 1;`, '/app/src/util.ts')).toBeNull();
     });
