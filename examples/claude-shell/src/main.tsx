@@ -12,7 +12,7 @@ import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
     TextArea, SuggestionList, Select, Divider, KeyHints, Shimmer,
     renderPixelArt, createViewStack, onKey, isEsc, printStatic, paintToken,
-    getTerminalSize, layoutText, setTheme, listThemes, getTheme, Spacer } from '@sigx/terminal';
+    getTerminalSize, layoutText, setTheme, listThemes, getTheme, Spacer, Col } from '@sigx/terminal';
 import { LOGO_ROWS, LOGO_PALETTE } from './logo';
 import { COMMANDS, MODELS, FAKE_REPLIES } from './commands';
 
@@ -143,7 +143,7 @@ const Shell = component(() => {
             // divider + bordered select (options + 2) + description + hints
             const gap = mkGap(1 + MODELS.length + 2 + 1 + 1);
             return (
-                <box>
+                <Col>
                     {gap}
                     <Divider width={Math.min(cols, 80)} label="model" />
                     <Select
@@ -163,13 +163,13 @@ const Shell = component(() => {
                         { key: '↵', label: 'select' },
                         { key: 'esc', label: 'back' },
                     ]} />
-                </box>
+                </Col>
             );
         }
 
         const gap = mkGap(1 /* divider */ + inputRows + suggestions.length + 1 /* hints */);
         return (
-            <box>
+            <Col>
                 {gap}
                 <Divider width={Math.min(cols, 120)} />
                 <TextArea
@@ -192,7 +192,7 @@ const Shell = component(() => {
                         { key: 'esc', label: 'back' },
                         { key: '^C', label: 'quit' },
                     ]} />}
-            </box>
+            </Col>
         );
     };
 }, { name: 'Shell' });

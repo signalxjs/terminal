@@ -1,12 +1,12 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, Text, Spacer } from '@sigx/terminal';
+import { component, signal, Text, Spacer, Col } from '@sigx/terminal';
 import { Tabs, StatusBar, KeyHints } from '@sigx/terminal';
 
 export const NavigationDemo = component(() => {
     const tab = signal('overview');
 
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Tab to focus the switcher, then ←/→ (or h/l) to change tabs.</Text>
             <Spacer size={1} />
             <Tabs
@@ -34,6 +34,6 @@ export const NavigationDemo = component(() => {
                 { key: 'd', label: 'devices' },
                 { key: 'q', label: 'quit' },
             ]} />
-        </box>
+        </Col>
     );
 }, { name: 'NavigationDemo' });

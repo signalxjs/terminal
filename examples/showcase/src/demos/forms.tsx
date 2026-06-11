@@ -1,5 +1,5 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, Text, Spacer } from '@sigx/terminal';
+import { component, signal, Text, Spacer, Col } from '@sigx/terminal';
 import { Input, Checkbox, Select, Radio, MultiSelect, Confirm } from '@sigx/terminal';
 
 export const FormsDemo = component(() => {
@@ -11,7 +11,7 @@ export const FormsDemo = component(() => {
     const proceed = signal(true);
 
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Tab between fields. Type in the input; Space toggles; ↑/↓ or j/k in lists.</Text>
             <Spacer size={1} />
             <Input model={name} label="Name" placeholder="type your name…" />
@@ -54,6 +54,6 @@ export const FormsDemo = component(() => {
             <Text color="fg">Hello </Text>
             <Text color="accent">{name.value || 'stranger'}</Text>
             <Text color="fg"> — {agree.value ? 'agreed' : 'not agreed'}, {fruit.value}/{size.value}, [{toppings.picked.join('+') || 'plain'}], {proceed.value ? 'go' : 'hold'}</Text>
-        </box>
+        </Col>
     );
 }, { name: 'FormsDemo' });

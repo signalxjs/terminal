@@ -1,5 +1,5 @@
 /** @jsxImportSource @sigx/runtime-core */
-import { component, signal, onMounted, onUnmounted, Text, Spacer } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { TaskList, createLogStore, type TaskItem } from '@sigx/terminal';
 
 const FAKE_OUTPUT = [
@@ -50,13 +50,13 @@ export const TasksDemo = component(() => {
     onUnmounted(() => { if (timer) clearInterval(timer); });
 
     return () => (
-        <box>
+        <Col>
             <Text color="dim">Build pipeline: spinner per task, log tail under the running one.</Text>
             <Spacer size={1} />
             <TaskList tasks={state.tasks} log={store} logHeight={5} />
             <Spacer size={1} />
             <Text color="dim">Tree variant:</Text>
             <TaskList tasks={state.tasks} variant="tree" />
-        </box>
+        </Col>
     );
 }, { name: 'TasksDemo' });
