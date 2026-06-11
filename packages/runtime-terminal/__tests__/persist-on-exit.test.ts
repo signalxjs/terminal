@@ -60,6 +60,18 @@ describe('persistOnExit: false (one-shot inline UIs)', () => {
         expect(cap.output()).toBe('\r\x1B[J\x1b[0m\x1B[?25h');
     });
 
+    it('inline clearConsole scrolls content away (newlines + home), never erases', () => {
+        const cap = captureOutput({ rows: 10 });
+        const app = linesApp(['top of a clean viewport']);
+        const handle = renderTerminal(app.vnode, { clearConsole: true, patchConsole: false });
+
+        const out = cap.output();
+        expect(out).toContain('\n'.repeat(10) + '\x1B[H'); // scroll-away + home
+        expect(out).not.toContain('\x1B[2J');              // never an erase
+        expect(out).not.toContain('\x1B[3J');
+        handle.unmount();
+    });
+
     it('default (persist) behavior is unchanged', () => {
         const cap = captureOutput();
         const app = linesApp(['kept']);
