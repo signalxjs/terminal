@@ -25,21 +25,24 @@ export const Gradient = component<
     onUnmounted(() => { unsub?.(); });
 
     return () => {
+        // Block root (<box>), like every other component in the library — an
+        // inline root glues onto whatever line precedes it. For inline
+        // gradient strings, use colorizeByIndex/paintToken directly.
         const text = props.text ?? '';
         const depth = getColorDepth();
-        if (depth === 'none') return <text>{text}</text>;
-        if (depth === 'ansi16') return <text color={resolveColor('accent')}>{text}</text>;
+        if (depth === 'none') return <box><text>{text}</text></box>;
+        if (depth === 'ansi16') return <box><text color={resolveColor('accent')}>{text}</text></box>;
 
         const stops = resolveStops(props.colors, props.preset);
         const len = [...text].length;
         const samples = gradient(stops, Math.max(len, 2));
 
         if (!props.animate) {
-            return <text>{colorizeByIndex(text, (i) => samples[Math.min(i, samples.length - 1)])}</text>;
+            return <box><text>{colorizeByIndex(text, (i) => samples[Math.min(i, samples.length - 1)])}</text></box>;
         }
         const cycle = pingPong(samples);
         const phase = Math.floor(getTick() * (props.speed || 1));
-        return <text>{colorizeByIndex(text, (i) => cycle[(i + phase) % cycle.length])}</text>;
+        return <box><text>{colorizeByIndex(text, (i) => cycle[(i + phase) % cycle.length])}</text></box>;
     };
 }, { name: 'Gradient' });
 

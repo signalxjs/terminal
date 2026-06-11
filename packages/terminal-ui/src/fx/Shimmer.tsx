@@ -22,11 +22,14 @@ export const Shimmer = component<
     onUnmounted(() => { unsub?.(); });
 
     return () => {
+        // Block root (<box>), like every other component in the library — an
+        // inline root glues onto whatever line precedes it (a thinking…
+        // shimmer must not land on the input's row).
         const text = props.text ?? '';
         const baseToken = props.color || 'dim';
         const depth = getColorDepth();
-        if (depth === 'none') return <text>{text}</text>;
-        if (depth === 'ansi16') return <text color={resolveColor(baseToken)}>{text}</text>;
+        if (depth === 'none') return <box><text>{text}</text></box>;
+        if (depth === 'ansi16') return <box><text color={resolveColor(baseToken)}>{text}</text></box>;
 
         const base = resolveColor(baseToken);
         const highlight = resolveColor(props.highlight || 'fg');
@@ -37,12 +40,14 @@ export const Shimmer = component<
         const pos = (getTick() * (props.speed || 1)) % span - w;
 
         return (
-            <text>
-                {colorizeByIndex(text, (i) => {
-                    const d = Math.abs(i - pos);
-                    return d < w ? mixHex(base, highlight, 1 - d / w) : base;
-                })}
-            </text>
+            <box>
+                <text>
+                    {colorizeByIndex(text, (i) => {
+                        const d = Math.abs(i - pos);
+                        return d < w ? mixHex(base, highlight, 1 - d / w) : base;
+                    })}
+                </text>
+            </box>
         );
     };
 }, { name: 'Shimmer' });
