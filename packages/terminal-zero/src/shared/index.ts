@@ -31,6 +31,14 @@ export {
     truncateToWidth,
 } from '@sigx/runtime-terminal';
 
+// One-shot mount + key injection — what the imperative prompts layer builds
+// on. Re-exported here so skins keep their single foundation import.
+export {
+    renderTerminal,
+    dispatchKey,
+    type RenderTerminalOptions,
+} from '@sigx/runtime-terminal';
+
 export * from './colorMath';
 export * from './ticker';
 

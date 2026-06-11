@@ -1,0 +1,19 @@
+{
+    "name": "@sigx/example-create-wizard",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Imperative prompt-kit demo: a clack-style create flow with collapse-to-static answers",
+    "scripts": {
+        "start": "tsx --tsconfig ./tsconfig.json src/main.tsx",
+        "typecheck": "tsgo --noEmit"
+    },
+    "dependencies": {
+        "@sigx/terminal": "workspace:^"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "tsx": "^4.20.0",
+        "typescript": "^5.9.3"
+    }
+}
