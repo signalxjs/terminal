@@ -709,9 +709,9 @@ function handleResize(): void {
     if (tornDown) return;
     if (mode === 'fullscreen') {
         // Safe in the alt buffer (no scrollback). Inline just repaints: the
-        // next flush re-truncates/re-clamps to the new size. (Known artifact,
-        // same as Ink: shrinking the width rewraps already-painted lines
-        // before our repaint, which can leave a stale fragment.)
+        // next flush re-truncates/re-clamps to the new size. (Known artifact:
+        // shrinking the width rewraps already-painted lines before our
+        // repaint, which can leave a stale fragment.)
         getOutputTarget().write('\x1B[2J\x1B[H');
     }
     scheduleRender();

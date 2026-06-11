@@ -2,7 +2,7 @@
  * Built-in 5-row block font for <Banner> — full blocks and spaces only, so
  * every cell is width-1 (gradient-fillable, no wide-glyph drift). Glyphs are
  * authored as '#'/'.' strings for readability and converted once at load.
- * No external figlet dependency.
+ * No external font dependency.
  */
 
 const RAW: Record<string, string[]> = {

@@ -4,9 +4,9 @@ import { resolveColor, getOutputTarget, truncateToWidth } from '@sigx/terminal-z
 import type { LogStore } from './logStore';
 
 /**
- * BuildKit-style log tail: the last `height` lines of a stream, dimmed, in
+ * Streaming log tail: the last `height` lines of a stream, dimmed, in
  * one of three variants:
- * - `bar`   — `│` gutter in the `line` color (default; the BuildKit look)
+ * - `bar`   — `│` gutter in the `line` color (default)
  * - `panel` — rounded bordered box with the title as its label
  * - `plain` — bare lines
  * Feed it a LogStore (preferred — reactive, `\r`-aware) or a plain `lines`
