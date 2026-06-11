@@ -1,10 +1,7 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, signal, onMounted, onUnmounted } from '@sigx/runtime-core';
-import { onKey, resolveColor, READY_DELAY_MS } from '@sigx/terminal-zero';
-import { CANCEL } from './cancel';
-import { runPrompt } from './runPrompt';
+import { onKey, resolveColor, READY_DELAY_MS, CANCEL, runPrompt, isEnter, isEsc, isCtrlC, isBackspace, isPrintable } from '@sigx/terminal-zero';
 import { promptFrame, promptRow } from './PromptShell';
-import { isEnter, isEsc, isCtrlC, isBackspace, isPrintable } from './keys';
 
 export interface TextOptions {
     message: string;

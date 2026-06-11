@@ -8,3 +8,4 @@ export * from './contract';
 export * from './theme';
 export * from './shared';
 export * from './layout';
+export * from './prompts';
