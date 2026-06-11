@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, signal } from '@sigx/terminal';
-import { Tabs, StatusBar, resolveColor } from '@sigx/terminal';
+import { Tabs, StatusBar, KeyHints, resolveColor } from '@sigx/terminal';
 
 export const NavigationDemo = component(() => {
     const tab = signal('overview');
@@ -26,6 +26,13 @@ export const NavigationDemo = component(() => {
                 { key: '↵', label: 'select' },
                 { key: 'q', label: 'quit' },
                 { key: '?', label: 'help' },
+            ]} />
+            <box></box>
+            <text color={resolveColor('dim')}>KeyHints (lighter dev-server footer):</text>
+            <KeyHints hints={[
+                { key: 'r', label: 'reload' },
+                { key: 'd', label: 'devices' },
+                { key: 'q', label: 'quit' },
             ]} />
         </box>
     );

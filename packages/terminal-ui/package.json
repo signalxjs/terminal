@@ -45,6 +45,10 @@
         "./tasks": {
             "import": "./dist/tasks/index.js",
             "types": "./dist/tasks/index.d.ts"
+        },
+        "./prompts": {
+            "import": "./dist/prompts/index.js",
+            "types": "./dist/prompts/index.d.ts"
         }
     },
     "files": [

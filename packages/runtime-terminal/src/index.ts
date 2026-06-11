@@ -499,11 +499,20 @@ export function onKey(handler: KeyHandler) {
     return () => keyHandlers.delete(handler);
 }
 
+/**
+ * Inject a key as if it arrived on stdin — runs the exact input path (Ctrl+C
+ * policy, Tab focus cycling, onKey fan-out). For tests, embedders, and
+ * automation driving a terminal app without a TTY.
+ */
+export function dispatchKey(key: string): void {
+    handleInput(key);
+}
+
 function handleInput(key: string) {
     // Ctrl+C — raw mode swallows SIGINT, so it arrives here as \u0003. Full
     // teardown (persist the inline frame / leave the alt screen / restore raw
     // mode and cursor), then exit with the conventional SIGINT code.
-    if (key === '\u0003') {
+    if (key === '\u0003' && exitOnCtrlC) {
         exitTerminal();
         process.exit(130);
     }
@@ -546,10 +555,26 @@ export interface RenderTerminalOptions {
      * once the final frame persists into scrollback.
      */
     canvas?: boolean;
+    /**
+     * Persist the final inline frame in scrollback on unmount (default true).
+     * When false, the live region is erased instead and the cursor returns to
+     * where the frame began — one-shot UIs (prompts, transient spinners) leave
+     * no trace. Fullscreen ignores this: leaving the alt screen already
+     * restores the prior screen.
+     */
+    persistOnExit?: boolean;
+    /**
+     * When false, Ctrl+C () is delivered to onKey handlers like any
+     * other key instead of tearing down and exiting 130 (default true).
+     * Prompts use this to turn Ctrl+C into a graceful cancel.
+     */
+    exitOnCtrlC?: boolean;
 }
 
 let stdinActive = false;
 let consoleRestore: (() => void) | null = null;
+let persistOnExit = true;
+let exitOnCtrlC = true;
 // Guards the escape-code restore so a signal/exit hook firing after a clean
 // teardown (or vice versa) writes it exactly once.
 let restored = false;
@@ -569,8 +594,9 @@ function restoreTerminalState(): void {
         } catch { /* mirror of the setup guard */ }
     }
     if (nonTTY) {
-        // The one and only paint: the final frame, as plain text.
-        if (lastFrameLines.length) {
+        // The one and only paint: the final frame, as plain text. One-shot UIs
+        // (persistOnExit: false) print their own summary instead.
+        if (lastFrameLines.length && persistOnExit) {
             target.write(lastFrameLines.join('\n') + '\n');
         }
     } else if (mode === 'fullscreen') {
@@ -581,6 +607,15 @@ function restoreTerminalState(): void {
             target.write(pendingStatic.join('\n') + '\n');
             pendingStatic = [];
         }
+    } else if (!persistOnExit) {
+        // One-shot UI: erase the live region; the cursor lands at column 0 on
+        // the row where the frame began, so whatever prints next (a prompt's
+        // summary line) takes its place.
+        let out = '';
+        if (prevFrameHeight > 0) {
+            out += '\r' + (prevFrameHeight > 1 ? `\x1B[${prevFrameHeight - 1}A` : '') + '\x1B[J';
+        }
+        target.write(out + '\x1b[0m\x1B[?25h');
     } else {
         // Inline: drop the cursor below the live region — the final frame
         // persists in scrollback.
@@ -594,6 +629,8 @@ function setupTerminal(options: RenderTerminalOptions = {}): TerminalNode {
     const target = getOutputTarget();
     nonTTY = !target.isTTY;
     canvasEnabled = options.canvas ?? mode === 'fullscreen';
+    persistOnExit = options.persistOnExit ?? true;
+    exitOnCtrlC = options.exitOnCtrlC ?? true;
     prevFrameHeight = 0;
     tornDown = false;
     restored = false;
@@ -637,11 +674,13 @@ function setupTerminal(options: RenderTerminalOptions = {}): TerminalNode {
 function teardownTerminal(container: TerminalNode): void {
     if (tornDown) return;
     // The persisted frame must reflect final state: flush any batched
-    // mutations before anything is torn down.
+    // mutations before anything is torn down. When the region is about to be
+    // erased instead (persistOnExit: false), skip the paint — it would also
+    // desync prevFrameHeight from the region the erase math must cover.
     if (renderTimer) {
         clearTimeout(renderTimer);
         renderTimer = null;
-        flushRender();
+        if (persistOnExit) flushRender();
     }
     // From here on, renders are silenced — the unmount mutations below must
     // not repaint (they would erase the persisted frame).

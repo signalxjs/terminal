@@ -11,7 +11,10 @@ export default defineLibConfig({
         'feedback/index': 'src/feedback/index.ts',
         'navigation/index': 'src/navigation/index.ts',
         'layout/index': 'src/layout/index.ts',
-        'data/index': 'src/data/index.ts'
+        'data/index': 'src/data/index.ts',
+        'fx/index': 'src/fx/index.ts',
+        'tasks/index': 'src/tasks/index.ts',
+        'prompts/index': 'src/prompts/index.ts'
     },
     external: [/@sigx\/.*/, 'node:process', 'node:readline', 'node:tty'],
     platform: 'node',
