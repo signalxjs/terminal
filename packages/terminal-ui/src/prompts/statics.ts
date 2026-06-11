@@ -12,12 +12,12 @@ import { paintToken } from '@sigx/terminal-zero';
 
 /** Open a prompt flow with a title bar. */
 export function intro(title: string): void {
-    printStatic(`${paintToken('┌', 'line')} ${paintToken(title, 'accent')}`);
+    printStatic(`${paintToken('┌', 'dim')} ${paintToken(title, 'accent')}`);
 }
 
 /** Close a prompt flow. */
 export function outro(message: string): void {
-    printStatic(`${paintToken('└', 'line')} ${message}\n`);
+    printStatic(`${paintToken('└', 'dim')} ${message}\n`);
 }
 
 /** An informational block inside a flow. */
@@ -25,7 +25,7 @@ export function note(message: string, title?: string): void {
     const lines: string[] = [];
     if (title) lines.push(`${paintToken('○', 'accent')} ${title}`);
     for (const line of message.split('\n')) {
-        lines.push(`${paintToken('│', 'line')} ${paintToken(line, 'dim')}`);
+        lines.push(`${paintToken('│', 'dim')} ${paintToken(line, 'dim')}`);
     }
     printStatic(lines.join('\n'));
 }

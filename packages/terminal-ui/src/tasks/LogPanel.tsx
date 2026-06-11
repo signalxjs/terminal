@@ -28,7 +28,11 @@ export const LogPanel = component<
         const width = props.width || Math.max(20, getOutputTarget().columns - 4);
         const variant = props.variant || 'bar';
         const textColor = resolveColor(props.color || 'dim');
-        const lineColor = resolveColor('line');
+        // Box borders keep the `line` token (drawn on the themed canvas), but
+        // the bare bar/title glyphs render on the terminal's own background in
+        // inline mode, where `line` can be near-invisible — use `dim`.
+        const borderColor = resolveColor('line');
+        const glyphColor = resolveColor('dim');
 
         const src = props.store
             ? props.store.tail(height)
@@ -36,7 +40,7 @@ export const LogPanel = component<
 
         if (variant === 'panel') {
             return (
-                <box border="rounded" borderColor={lineColor} label={props.title} labelColor={resolveColor('accent')} padX={1}>
+                <box border="rounded" borderColor={borderColor} label={props.title} labelColor={resolveColor('accent')} padX={1}>
                     {src.flatMap((line, i) => {
                         const row = <text color={textColor}>{truncateToWidth(line, width - 4)}</text>;
                         return i > 0 ? [<br />, row] : [row];
@@ -50,7 +54,7 @@ export const LogPanel = component<
         const rows = src.flatMap((line, i) => {
             const row = (
                 <text>
-                    {variant === 'bar' && <text color={lineColor}>│ </text>}
+                    {variant === 'bar' && <text color={glyphColor}>│ </text>}
                     <text color={textColor}>{truncateToWidth(line, width - gutter)}</text>
                 </text>
             );
@@ -60,7 +64,7 @@ export const LogPanel = component<
         return (
             <box>
                 {props.title && [
-                    <text color={lineColor}>{variant === 'bar' ? '┌ ' : ''}</text>,
+                    <text color={glyphColor}>{variant === 'bar' ? '┌ ' : ''}</text>,
                     <text color={resolveColor('dim')}>{props.title}</text>,
                     <br />,
                 ]}

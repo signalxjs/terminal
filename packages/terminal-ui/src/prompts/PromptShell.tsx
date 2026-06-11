@@ -8,6 +8,10 @@
  *
  * Plain vnode-building helpers (not components) — each prompt composes them
  * inside its own render function.
+ *
+ * Structural glyphs use the `dim` token, not `line`: inline prompts render on
+ * the terminal's own background (no themed canvas), where `line` — tuned for
+ * borders on the theme canvas — can be near-invisible.
  */
 import { resolveColor } from '@sigx/terminal-zero';
 
@@ -30,7 +34,7 @@ export function promptFrame(opts: FrameOptions) {
             </box>
             {opts.rows}
             <box>
-                <text color={resolveColor('line')}>└ </text>
+                <text color={resolveColor('dim')}>└ </text>
                 {hasError
                     ? <text color={resolveColor('danger')}>{opts.error}</text>
                     : opts.footer
@@ -45,7 +49,7 @@ export function promptFrame(opts: FrameOptions) {
 export function promptRow(children: unknown) {
     return (
         <box>
-            <text color={resolveColor('line')}>│ </text>
+            <text color={resolveColor('dim')}>│ </text>
             {children}
         </box>
     );
