@@ -29,6 +29,7 @@ defineApp(<App />).mount({ fullscreen: true }, terminalMount);
 - **Edit a component module** (a file that calls `component(...)`, like `App.tsx`): just that module re-executes; every live instance re-runs the new setup against its existing context and re-renders in place. The terminal never tears down, and state outside the edited setup (parent components, stores, module-level signals elsewhere) survives.
 - **Edit the mount module** (or a module nothing accepts): the app restarts in-process — clean terminal teardown, module cache dropped, entry re-imported.
 - **Break the build**: the error is reported (above the live region while mounted); the next successful save recovers automatically.
+- **Quit with Ctrl+C**: the dev process exits 0 — quitting the app is the normal end of a dev session, so wrappers like pnpm scripts don't report a failure. (Raw mode delivers Ctrl+C to the app as a key; the app's conventional exit 130 is translated by the bin. Other exit codes pass through.)
 
 Your app's `tsconfig.json` needs the usual SignalX JSX setup (`"jsx": "react-jsx"`, `"jsxImportSource": "@sigx/runtime-core"` — or the `@sigx/terminal` facade).
 
