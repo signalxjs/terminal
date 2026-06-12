@@ -164,14 +164,13 @@ importers:
         version: 8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4)
 
   packages/runtime-terminal:
-    dependencies:
-      '@sigx/reactivity':
-        specifier: ^0.4.9
-        version: 0.4.9
-      '@sigx/runtime-core':
-        specifier: ^0.4.9
-        version: 0.4.9
     devDependencies:
+      '@sigx/reactivity':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sigx/runtime-core':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@sigx/vite':
         specifier: ^0.4.7
         version: 0.4.7(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
@@ -187,12 +186,6 @@ importers:
 
   packages/terminal:
     dependencies:
-      '@sigx/reactivity':
-        specifier: ^0.4.9
-        version: 0.4.9
-      '@sigx/runtime-core':
-        specifier: ^0.4.9
-        version: 0.4.9
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
@@ -203,6 +196,12 @@ importers:
         specifier: workspace:^
         version: link:../terminal-zero
     devDependencies:
+      '@sigx/reactivity':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sigx/runtime-core':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@sigx/vite':
         specifier: ^0.4.7
         version: 0.4.7(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
@@ -218,16 +217,16 @@ importers:
 
   packages/terminal-dev:
     dependencies:
-      '@sigx/runtime-core':
-        specifier: ^0.4.9
-        version: 0.4.9
       vite:
         specifier: ^8.0.3
         version: 8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4)
     devDependencies:
       '@sigx/reactivity':
-        specifier: ^0.4.9
-        version: 0.4.9
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sigx/runtime-core':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
@@ -243,16 +242,16 @@ importers:
 
   packages/terminal-ui:
     dependencies:
-      '@sigx/reactivity':
-        specifier: ^0.4.9
-        version: 0.4.9
-      '@sigx/runtime-core':
-        specifier: ^0.4.9
-        version: 0.4.9
       '@sigx/terminal-zero':
         specifier: workspace:^
         version: link:../terminal-zero
     devDependencies:
+      '@sigx/reactivity':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sigx/runtime-core':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@sigx/vite':
         specifier: ^0.4.7
         version: 0.4.7(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
@@ -268,16 +267,16 @@ importers:
 
   packages/terminal-zero:
     dependencies:
-      '@sigx/reactivity':
-        specifier: ^0.4.9
-        version: 0.4.9
-      '@sigx/runtime-core':
-        specifier: ^0.4.9
-        version: 0.4.9
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
     devDependencies:
+      '@sigx/reactivity':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@sigx/runtime-core':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@sigx/vite':
         specifier: ^0.4.7
         version: 0.4.7(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
@@ -722,8 +721,16 @@ packages:
     resolution: {integrity: sha512-YIvfliXJ1UAf2ypC8nIzo/qFwwrUK8BzQnns83onb9b5nfcRADj93iwYDgeqGDrDBMiHZ4QDu5TxXQt2d4zjog==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
+  '@sigx/reactivity@0.6.0':
+    resolution: {integrity: sha512-s51qJ/MXEhWRkoccXAHDX7ERRlFytcbrM/5f7SV+9S0JK9x9MpSxwV2Y7CBpLz1CfZE5JoxqnEWLCFssG5DG3Q==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+
   '@sigx/runtime-core@0.4.9':
     resolution: {integrity: sha512-7XoYZrjT4DCSgivgOXEAUj/7V7ebVlI13SlxWUO5ZYM7GZz4Xg1uYDg6ibjSTEFvSQ+5XESWZT4ViV8Uoi4B3g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+
+  '@sigx/runtime-core@0.6.0':
+    resolution: {integrity: sha512-nFLrzsefS7T2kJK6q7yPT5aY/1UG2hmaj9m1LOhy+Ly6+SXOroIRh7S2mVVwHOgyxnsMqyA3R0MUZpf+u68AvQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
   '@sigx/runtime-dom@0.4.9':
@@ -1450,9 +1457,15 @@ snapshots:
 
   '@sigx/reactivity@0.4.9': {}
 
+  '@sigx/reactivity@0.6.0': {}
+
   '@sigx/runtime-core@0.4.9':
     dependencies:
       '@sigx/reactivity': 0.4.9
+
+  '@sigx/runtime-core@0.6.0':
+    dependencies:
+      '@sigx/reactivity': 0.6.0
 
   '@sigx/runtime-dom@0.4.9':
     dependencies:

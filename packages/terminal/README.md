@@ -9,8 +9,13 @@ Full guides, API reference and live examples → **<https://sigx.dev/terminal/>*
 ## Install
 
 ```bash
-npm install @sigx/terminal
+npm install @sigx/terminal @sigx/reactivity @sigx/runtime-core
 ```
+
+The SignalX core packages (`@sigx/reactivity`, `@sigx/runtime-core`, 0.6.x) are
+**peer dependencies**, so your app shares one reactivity engine across all
+`@sigx/*` packages. npm 7+ installs peers automatically; listing them
+explicitly works everywhere.
 
 ## Quick taste
 
