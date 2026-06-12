@@ -31,7 +31,37 @@ const TSCONFIG = JSON.stringify({
 
 const STORE_TS = `
 import { signal } from '@sigx/reactivity';
-export const store = signal({ n: 0 });
+export const store = signal({ n: 0, tab: 'a' });
+`;
+
+// A navigation parent in its own module: holds the Label import binding and
+// mounts/unmounts it as the store's tab flips.
+const APP_TSX = `
+/** @jsxImportSource @sigx/runtime-core */
+import { component } from '@sigx/runtime-core';
+import { store } from './store';
+import { Label } from './ui';
+
+export const App = component(() => () => (
+    store.tab === 'b' ? <Label /> : <text>tab a showing</text>
+));
+`;
+
+const mainWithApp = (outFile: string) => `
+/** @jsxImportSource @sigx/runtime-core */
+import { appendFileSync } from 'node:fs';
+import { renderTerminal, setOutputTarget, syncTerminalSize } from '@sigx/runtime-terminal';
+import { App } from './app';
+
+setOutputTarget({
+    write: (s: string) => { appendFileSync(${JSON.stringify(outFile)}, s); },
+    columns: 80,
+    rows: 24,
+    isTTY: true,
+});
+syncTerminalSize();
+
+renderTerminal(<App />, { patchConsole: false });
 `;
 
 const ui = (version: string) => `
@@ -39,6 +69,7 @@ const ui = (version: string) => `
 import { component } from '@sigx/runtime-core';
 import { store } from './store';
 
+export const VERSION = ${JSON.stringify(version)};
 export const Label = component(() => () => (
     <text>version ${version} n={String(store.n)}</text>
 ));
@@ -144,6 +175,39 @@ describe('dev runner e2e', () => {
         // A real restart: the old app tore down (cursor re-shown) before the
         // new mount painted.
         expect(output()).toContain('\x1B[?25h');
+        expect(errors).toEqual([]);
+    }, 30_000);
+
+    it('shows edits made while a component was hidden once navigated to (stale factory)', async () => {
+        // The user is on tab A, edits tab B's component, then navigates to B:
+        // the navigation parent mounts B through a stale factory reference.
+        writeFileSync(path.join(dir, 'src', 'app.tsx'), APP_TSX);
+        writeFileSync(path.join(dir, 'src', 'main.tsx'), mainWithApp(outFile));
+        await boot();
+        await until(() => output().includes('tab a showing'), 'first frame');
+
+        // Edit the hidden component; nothing is mounted, so nothing repaints.
+        // Wait until the runner's module graph serves the new version (the
+        // edited module is invalidated, so importing it re-executes it
+        // through the same transform + HMR-runtime path) before navigating.
+        editFile('src/ui.tsx', ui('two'));
+        const uiUrl = pathToFileURL(path.join(dir, 'src', 'ui.tsx')).href;
+        let uiVersion = '';
+        let importInFlight = false;
+        await until(() => {
+            if (!importInFlight && uiVersion !== 'two') {
+                importInFlight = true;
+                handle!.runner.import(uiUrl)
+                    .then((mod) => { uiVersion = mod.VERSION; }, () => {})
+                    .finally(() => { importInFlight = false; });
+            }
+            return uiVersion === 'two';
+        }, 'runner serving the edited module');
+
+        const storeUrl = pathToFileURL(path.join(dir, 'src', 'store.ts')).href;
+        const storeMod = await handle!.runner.import(storeUrl);
+        storeMod.store.tab = 'b';
+        await until(() => output().includes('version two'), 'hidden edit visible after navigating to it');
         expect(errors).toEqual([]);
     }, 30_000);
 

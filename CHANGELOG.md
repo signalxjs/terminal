@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **`@sigx/terminal-dev` — HMR dev mode** (#45): `sigx-terminal-dev <entry>` (and root `pnpm dev` for the showcase) runs a terminal app under an in-process Vite dev server with hot module replacement. Saving a component module patches live instances in place (new setup re-runs against the existing context, the renderer repaints — no teardown, surrounding state intact); saving the mount module (or a module nothing accepts) restarts the app in-process with a clean terminal teardown first; a broken edit reports the error and recovers on the next successful save. Ships a `terminalDevPlugin()` Vite plugin, a programmatic `startDev()`, and an HMR runtime (`@sigx/terminal-dev/hmr`) that hooks `@sigx/runtime-core` component definitions.
 
+### Fixed
+
+- **`sigx-terminal-dev`: quitting the app with Ctrl+C no longer fails the dev process** (#48): raw mode delivers Ctrl+C to the app as a key (the renderer exits 130, the SIGINT convention) instead of signalling the process group, so wrappers like pnpm reported `ELIFECYCLE … exit code 130`. The bin now treats the app's Ctrl+C exit as a clean end of the dev session and exits 0; real failure codes pass through unchanged.
+- **HMR: edits no longer lost when navigating away and back** (#50): hot updates only patched live instances, so a parent that captured the component reference before the edit (a tab catalog, a navigation view) kept mounting the OLD factory — switching tabs reverted the edit, and editing a hidden tab's component never showed. Every factory now mounts through a per-identity setup trampoline, and a redefine swaps the trampoline's target — so remounts through stale references mount the edited version.
+
 ## [0.5.0] - 2026-06-12
 
 First lockstep release of the four-package design system. New packages: `@sigx/terminal-zero` (headless foundation) and `@sigx/terminal-ui` (SigX-tui skin).
