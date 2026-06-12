@@ -102,6 +102,18 @@ describe('runMain', () => {
         expect(process.exitCode).toBe(1);
     });
 
+    it('respects an exit code set by the handler itself', async () => {
+        const cmd = defineCommand({
+            meta: { name: 'soft' },
+            run() {
+                process.exitCode = 2;
+            }
+        });
+        const { opts } = io();
+        await runMain(cmd, { rawArgs: [], ...opts });
+        expect(process.exitCode).toBe(2);
+    });
+
     it('turns handler throws into exit code 1', async () => {
         const cmd = defineCommand({
             meta: { name: 'boom' },

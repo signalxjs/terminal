@@ -67,9 +67,11 @@ function buildContext(root: AnyCommand, resolved: ResolvedRun): CommandContext {
 
 /**
  * Resolve + parse + run, throwing on any failure (ParseError or handler
- * error) instead of printing. Returns the context the handler received —
- * untyped args, since resolution may descend to a subcommand whose schema
- * differs from the root's.
+ * error) instead of printing. The handler runs only if the resolved command
+ * has one (a group command without a default run just resolves and parses).
+ * Returns the context the handler received (or would have) — untyped args,
+ * since resolution may descend to a subcommand whose schema differs from the
+ * root's.
  */
 export async function runCommand(
     cmd: AnyCommand,
@@ -128,7 +130,11 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
 
     try {
         await resolved.cmd.run(ctx);
-        setExitCode(0);
+        // Default to success, but respect an exit code the handler set itself
+        // (e.g. process.exitCode = 2 for a soft failure).
+        if (typeof process !== 'undefined' && process.exitCode === undefined) {
+            process.exitCode = 0;
+        }
     } catch (error) {
         stderr(`error: ${error instanceof Error ? error.message : String(error)}`);
         setExitCode(1);
