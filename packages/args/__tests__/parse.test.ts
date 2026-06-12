@@ -93,7 +93,8 @@ describe('values and coercion', () => {
     it('treats negative numbers as values, not flags', () => {
         const def = { offset: { type: 'number' }, rest: { type: 'rest' } } as const;
         expect(parseArgs(['--offset', '-2'], def).args.offset).toBe(-2);
-        expect(parseArgs(['-1.5'], def).args.rest).toEqual(['-1.5']);
+        expect(parseArgs(['--offset', '-.5'], def).args.offset).toBe(-0.5);
+        expect(parseArgs(['-1.5', '-.5'], def).args.rest).toEqual(['-1.5', '-.5']);
     });
 
     it('rejects non-finite numbers', () => {

@@ -65,7 +65,8 @@ function buildNameMap(argsDef: ArgsDef): Map<string, string> {
 
 /** A token that would be read as a flag (so it can't serve as a flag's value). */
 function looksLikeFlag(token: string): boolean {
-    return token.length > 1 && token.startsWith('-') && !/^-\d/.test(token);
+    // `-2` and `-.5` are negative numbers, not flags.
+    return token.length > 1 && token.startsWith('-') && !/^-(\d|\.\d)/.test(token);
 }
 
 const TRUE_WORDS = new Set(['true', '1', 'yes']);
