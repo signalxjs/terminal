@@ -123,8 +123,9 @@ export class CommandBuilder<S extends ArgsShape = Record<never, never>> implemen
     }
 
     /**
-     * Attach the handler. Terminal: returns the finished `Command`, so no
-     * further refinement can change the context type the handler closed over —
+     * Attach the handler. Terminal at the type level: the return is typed as
+     * the finished `Command` (at runtime still a builder), so typed callers
+     * can't keep refining past the context type the handler closed over —
      * call `.args()`/`.subcommands()` first.
      */
     run(handler: (ctx: CommandContext<S>) => void | Promise<void>): Command<S> {
