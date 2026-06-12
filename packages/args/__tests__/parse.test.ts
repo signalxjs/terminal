@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ParseError, parseArgs } from '../src/index';
+import { DefinitionError, ParseError, parseArgs } from '../src/index';
 
 function parseError(fn: () => unknown): ParseError {
     try {
@@ -143,6 +143,10 @@ describe('positionals, rest, and --', () => {
         const err = parseError(() => parseArgs(['a', 'b'], { entry: { type: 'positional' } }));
         expect(err.code).toBe('UNEXPECTED_POSITIONAL');
         expect(err.detail.received).toBe('b');
+    });
+
+    it('rejects a schema key named _ even without defineCommand', () => {
+        expect(() => parseArgs([], { _: { type: 'string' } } as never)).toThrow(DefinitionError);
     });
 
     it('passes everything after -- through to _, untouched', () => {

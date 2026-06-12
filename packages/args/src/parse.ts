@@ -13,7 +13,7 @@
  * - Repeats append for `multiple: true`, otherwise last wins.
  */
 
-import { ParseError } from './errors.js';
+import { DefinitionError, ParseError } from './errors.js';
 import type { ArgDef, ArgsDef, ParsedArgs } from './types.js';
 
 export interface ParseArgsOptions {
@@ -77,6 +77,12 @@ export function parseArgs<const A extends ArgsDef>(
     argsDef: A,
     opts: ParseArgsOptions = {}
 ): ParseResult<A> {
+    // Guard here too: parseArgs is public and usable without defineCommand's
+    // validation, and `_` is always overwritten with the passthrough tokens.
+    if ('_' in argsDef) {
+        throw new DefinitionError(`Arg key '_' is reserved for post-'--' tokens`);
+    }
+
     const command = opts.commandPath;
     const names = buildNameMap(argsDef);
     const values: Record<string, unknown> = {};
