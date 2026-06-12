@@ -40,10 +40,11 @@ const main = defineCommand({
 await runMain(main);
 ```
 
-`--help`/`-h` and `--version` are handled automatically at every level —
-`sigx --help`, `sigx dev --help`. The spellings `help` and `h` (and `version`,
-when `meta.version` is set) are reserved: declaring an arg with one of those
-names or aliases throws a `DefinitionError`.
+`--help`/`-h` is handled automatically at every level — `sigx --help`,
+`sigx dev --help` — and `--version` at the root when `meta.version` is set.
+The spellings `help` and `h` (and `version`, when `meta.version` is set) are
+reserved: declaring an arg with one of those names or aliases throws a
+`DefinitionError`.
 
 ## Arg types
 

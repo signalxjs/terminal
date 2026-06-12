@@ -10,7 +10,7 @@ import { ParseError } from './errors.js';
 import { buildHelpCatalog } from './help.js';
 import { parseArgs } from './parse.js';
 import { renderHelp } from './render.js';
-import type { AnyCommand, ArgsDef, Command, CommandContext } from './types.js';
+import type { AnyCommand, ArgsDef, CommandContext } from './types.js';
 
 export interface RunMainOptions {
     /** Defaults to process.argv.slice(2). */
@@ -67,10 +67,12 @@ function buildContext(root: AnyCommand, resolved: ResolvedRun): CommandContext {
 
 /**
  * Resolve + parse + run, throwing on any failure (ParseError or handler
- * error) instead of printing. Returns the context the handler received.
+ * error) instead of printing. Returns the context the handler received —
+ * untyped args, since resolution may descend to a subcommand whose schema
+ * differs from the root's.
  */
-export async function runCommand<A extends ArgsDef>(
-    cmd: Command<A>,
+export async function runCommand(
+    cmd: AnyCommand,
     opts: { rawArgs: readonly string[] }
 ): Promise<CommandContext> {
     const resolved = resolveCommand(cmd, opts.rawArgs);
