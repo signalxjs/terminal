@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-12
+
+New package: `@sigx/args` — fluent, type-aware command & argument parser for CLIs.
+
 ### Added
 
 - **`@sigx/args` — fluent, type-aware command & argument parser** (#60, #63): commands chain from `command(name)` (`.describe()`, `.version()`, `.args()`, `.subcommands()`, `.run()`) and args are declared with chainable `a.*` builders (`a.number().alias('p').required()` — string/number/boolean/enum, positionals, variadic rest, defaults, `--no-x` negation) whose type-state drives compile-time inference of the handler's `ctx.args`; invalid refiner combinations don't typecheck. Nested subcommands with aliases; automatic `--help`/`--version`; a headless `HelpCatalog` data model with a built-in plain-text renderer (themed TUI renderers can consume the catalog directly); typed `ParseError` codes for programmatic error rendering; `runMain` for binaries, a throwing `runCommand` for embedding (e.g. the sigx CLI shell), and a headless `parseArgs(argv, shape)`. Zero runtime dependencies, platform-neutral.
