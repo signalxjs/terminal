@@ -72,7 +72,10 @@ Common options: `required`, `default`, `description`, `alias`
   numbers (`-2`) are values.
 - Bare `--` ends flag parsing; the remainder lands verbatim in `args._`.
 - Unknown flags throw by default; set `allowUnknownFlags: true` per command to
-  collect them into `ctx.unknownFlags` instead.
+  collect them into `ctx.unknownFlags` instead. An unknown `--flag value` pair
+  is collected together (mirroring known-flag value binding) so positional
+  binding doesn't shift — use `=` or `--` when a following token must stay
+  positional.
 - Repeated flags: `multiple: true` appends, otherwise last wins.
 
 Parse failures throw a typed `ParseError` with a machine-readable `code`

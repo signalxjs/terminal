@@ -140,9 +140,19 @@ export function parseArgs<const A extends ArgsDef>(
         }
     };
 
-    const handleUnknown = (token: string) => {
+    /**
+     * Collect (or reject) an unknown flag. Without `=`, the next non-flag
+     * token is collected too — mirroring how known flags take values — so an
+     * unknown `--flag value` pair doesn't shift positional binding. Use `=`
+     * or `--` when a following token must stay positional.
+     */
+    const handleUnknown = (token: string, hadEqValue: boolean, next?: () => string | undefined) => {
         if (opts.allowUnknownFlags) {
             unknownFlags.push(token);
+            if (!hadEqValue && next) {
+                const value = next();
+                if (value !== undefined) unknownFlags.push(value);
+            }
             return;
         }
         fail('UNKNOWN_FLAG', `Unknown flag '${token}'`, { received: token });
@@ -194,7 +204,7 @@ export function parseArgs<const A extends ArgsDef>(
                 }
             }
             if (key === undefined) {
-                handleUnknown(token);
+                handleUnknown(token, eqValue !== undefined, consumeNext);
                 continue;
             }
 
@@ -224,7 +234,7 @@ export function parseArgs<const A extends ArgsDef>(
             if (rawName.length === 1) {
                 const key = resolve(rawName);
                 if (key === undefined) {
-                    handleUnknown(token);
+                    handleUnknown(token, eqValue !== undefined, consumeNext);
                     continue;
                 }
                 const def = argsDef[key] as FlagDef;

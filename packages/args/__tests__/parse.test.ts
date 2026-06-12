@@ -184,10 +184,30 @@ describe('unknown flags', () => {
     });
 
     it('collects them with allowUnknownFlags', () => {
-        const { args, unknownFlags } = parseArgs(['--bogus=1', '-z', 'pos'], { entry: { type: 'positional' } }, {
+        const { args, unknownFlags } = parseArgs(['pos', '--bogus=1', '-z', '--verbose'], { entry: { type: 'positional' } }, {
             allowUnknownFlags: true
         });
-        expect(unknownFlags).toEqual(['--bogus=1', '-z']);
+        expect(unknownFlags).toEqual(['--bogus=1', '-z', '--verbose']);
+        expect(args.entry).toBe('pos');
+    });
+
+    it('consumes an unknown flag value so positional binding does not shift', () => {
+        const { args, unknownFlags } = parseArgs(
+            ['--foo', 'bar', 'pos'],
+            { entry: { type: 'positional' } },
+            { allowUnknownFlags: true }
+        );
+        expect(unknownFlags).toEqual(['--foo', 'bar']);
+        expect(args.entry).toBe('pos');
+    });
+
+    it('does not consume past an unknown --flag=value or a flag-looking token', () => {
+        const { args, unknownFlags } = parseArgs(
+            ['--foo=1', 'pos', '--bar', '--baz'],
+            { entry: { type: 'positional' } },
+            { allowUnknownFlags: true }
+        );
+        expect(unknownFlags).toEqual(['--foo=1', '--bar', '--baz']);
         expect(args.entry).toBe('pos');
     });
 
