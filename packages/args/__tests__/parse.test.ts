@@ -160,6 +160,17 @@ describe('defaults and required', () => {
         expect(parseArgs(['--host', 'x'], def).args.host).toBe('x');
     });
 
+    it('materializes absent optionals as own undefined properties', () => {
+        const { args } = parseArgs([], {
+            verbose: { type: 'boolean' },
+            entry: { type: 'positional' },
+            mode: { type: 'enum', options: ['a', 'b'] }
+        });
+        expect('verbose' in args).toBe(true);
+        expect(Object.keys(args).sort()).toEqual(['_', 'entry', 'mode', 'verbose']);
+        expect(args.verbose).toBeUndefined();
+    });
+
     it('throws MISSING_REQUIRED for absent flags and positionals', () => {
         const flagErr = parseError(() => parseArgs([], { port: { type: 'number', required: true } }));
         expect(flagErr.code).toBe('MISSING_REQUIRED');

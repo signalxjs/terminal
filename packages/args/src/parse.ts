@@ -291,7 +291,9 @@ export function parseArgs<const A extends ArgsDef>(
         });
     }
 
-    // Defaults, then the required check.
+    // Defaults, then the required check. Absent optionals become explicit
+    // `undefined` own properties so runtime shape matches ParsedArgs (every
+    // schema key is present — `in` checks and key enumeration stay truthful).
     for (const [key, def] of Object.entries(argsDef)) {
         if (values[key] === undefined) {
             if (def.type === 'rest') {
@@ -300,6 +302,8 @@ export function parseArgs<const A extends ArgsDef>(
                 values[key] = def.default !== undefined ? [def.default] : [];
             } else if (def.default !== undefined) {
                 values[key] = def.default;
+            } else {
+                values[key] = undefined;
             }
         }
         if (def.type !== 'rest' && def.required) {
