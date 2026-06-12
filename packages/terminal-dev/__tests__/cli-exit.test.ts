@@ -50,15 +50,20 @@ describe('sigx-terminal-dev exit codes', () => {
         rmSync(dir, { recursive: true, force: true });
     });
 
-    function writeEntry(exitCode: number): void {
+    function writeEntry(exitCode: number | string): void {
         writeFileSync(path.join(dir, 'src', 'main.ts'), `
-setTimeout(() => process.exit(${exitCode}), 200);
+setTimeout(() => process.exit(${JSON.stringify(exitCode)}), 200);
 export {};
 `);
     }
 
     it('treats the app quitting via Ctrl+C (exit 130) as a clean end of the dev session', async () => {
         writeEntry(130);
+        expect(await runCli(dir)).toBe(0);
+    }, 30_000);
+
+    it("translates node's string form of the code ('130') too", async () => {
+        writeEntry('130');
         expect(await runCli(dir)).toBe(0);
     }, 30_000);
 

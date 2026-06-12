@@ -72,7 +72,8 @@ process.stderr.write(`[sigx-terminal-dev] ${path.join(path.basename(root), entry
 // startDev() embedders keep their own exit handling. Other codes pass through.
 const realExit = process.exit.bind(process);
 process.exit = ((code?: number | string | null) =>
-    realExit(code === 130 ? 0 : code)) as typeof process.exit;
+    // Coerced compare: node also accepts integer strings ('130').
+    realExit(code != null && Number(code) === 130 ? 0 : code)) as typeof process.exit;
 
 const handle = await startDev({
     entry,
