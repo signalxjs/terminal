@@ -60,8 +60,10 @@ function valueHint(entry: HelpArgEntry): string {
 
 function flagLabel(entry: HelpArgEntry): string {
     const short = entry.aliases.find((a) => a.length === 1);
+    const longAliases = entry.aliases.filter((a) => a.length > 1);
     const prefix = short !== undefined ? `-${short}, ` : '    ';
-    let label = `${prefix}--${camelToKebab(entry.name)}`;
+    const names = [entry.name, ...longAliases].map((n) => `--${camelToKebab(n)}`);
+    let label = prefix + names.join(', ');
     if (entry.type !== 'boolean') label += ` <${valueHint(entry)}>`;
     return label;
 }

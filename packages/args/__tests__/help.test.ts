@@ -83,6 +83,15 @@ describe('renderHelp', () => {
         expect(text).toContain('-h, --help');
     });
 
+    it('lists long aliases alongside the canonical flag name', () => {
+        const cmd = defineCommand({
+            args: { force: { type: 'boolean', alias: ['f', 'hard'] } },
+            run() {}
+        });
+        const rendered = renderHelp(buildHelpCatalog(cmd, ['x']));
+        expect(rendered).toContain('-f, --force, --hard');
+    });
+
     it('omits hidden entries', () => {
         expect(text).not.toContain('secret');
         expect(text).not.toContain('internal');

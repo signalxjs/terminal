@@ -59,7 +59,14 @@ function validateArgs(argsDef: ArgsDef | undefined, reserved: Map<string, string
         } else {
             claim(key, key);
             claim(camelToKebab(key), key);
-            for (const alias of aliasesOf(def)) claim(alias, key);
+            for (const alias of aliasesOf(def)) {
+                claim(alias, key);
+                // parseArgs resolves kebab↔camel spellings interchangeably, so
+                // an alias also claims its kebab form ('dryRun' vs 'dry-run'
+                // across two args would be a footgun, not two distinct flags).
+                const kebab = camelToKebab(alias);
+                if (kebab !== alias && !kebab.startsWith('-')) claim(kebab, key);
+            }
         }
     }
 }

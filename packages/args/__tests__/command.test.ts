@@ -32,6 +32,7 @@ describe('defineCommand', () => {
         ['required with default', { port: { type: 'number', required: true, default: 1 } }],
         ['enum default outside options', { mode: { type: 'enum', options: ['a'], default: 'b' } }],
         ['alias collision', { port: { type: 'number', alias: 'p' }, print: { type: 'boolean', alias: 'p' } }],
+        ['kebab/camel alias collision', { a: { type: 'boolean', alias: 'dryRun' }, b: { type: 'boolean', alias: 'dry-run' } }],
         ['kebab/camel key collision', { dryRun: { type: 'boolean' }, 'dry-run': { type: 'boolean' } }],
         ['reserved key _', { _: { type: 'string' } }],
         ['flag named help', { help: { type: 'boolean' } }],
