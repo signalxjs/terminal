@@ -120,6 +120,7 @@ To run a package script: `pnpm --filter <package-name> <script>`.
 - `packages/terminal-ui` → `@sigx/terminal-ui` — Themed component library (SigX-tui skin).
 - `packages/terminal` → `@sigx/terminal` — SignalX Terminal - TUI framework with TSX support.
 - `packages/terminal-dev` → `@sigx/terminal-dev` — HMR dev runner: `sigx-terminal-dev` bin, Vite plugin, HMR runtime.
+- `packages/args` → `@sigx/args` — Type-aware command & argument parser for CLIs: typed args schemas, nested subcommands, headless help catalog.
 
 ## Parallel work with git worktrees
 

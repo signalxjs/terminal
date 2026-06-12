@@ -33,6 +33,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
 const PACKAGES = [
+    'packages/args',
     'packages/runtime-terminal',
     'packages/terminal-zero',
     'packages/terminal-ui',
@@ -174,6 +175,17 @@ function main() {
             "import { startDev, terminalDevPlugin } from '@sigx/terminal-dev';",
             "import { registerHMRModule, installHMRPlugin } from '@sigx/terminal-dev/hmr';",
             'export type _Dev = [typeof startDev, typeof terminalDevPlugin, typeof registerHMRModule, typeof installHMRPlugin];',
+            '',
+        ].join('\n')
+    );
+
+    // The args package: command definition, parsing, and the help catalog as a
+    // published unit (zero-dependency, platform-neutral).
+    writeFileSync(
+        join(appDir, 'src', 'args-check.ts'),
+        [
+            "import { defineCommand, runMain, parseArgs, buildHelpCatalog, renderHelp, ParseError } from '@sigx/args';",
+            'export type _Args = [typeof defineCommand, typeof runMain, typeof parseArgs, typeof buildHelpCatalog, typeof renderHelp, typeof ParseError];',
             '',
         ].join('\n')
     );

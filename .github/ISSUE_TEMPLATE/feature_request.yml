@@ -40,12 +40,12 @@ body:
       label: Which package(s) would this affect?
       multiple: true
       options:
-        - sigx
-        - "@sigx/reactivity"
-        - "@sigx/runtime-core"
-        - "@sigx/runtime-dom"
-        - "@sigx/server-renderer"
-        - "@sigx/vite"
+        - "@sigx/terminal"
+        - "@sigx/runtime-terminal"
+        - "@sigx/terminal-zero"
+        - "@sigx/terminal-ui"
+        - "@sigx/terminal-dev"
+        - "@sigx/args"
         - Not sure
     validations:
       required: true

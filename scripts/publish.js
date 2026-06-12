@@ -33,6 +33,7 @@ const rootDir = join(__dirname, '..');
 // live in their own repos under https://github.com/signalxjs and are published
 // from there.
 const PACKAGES = [
+    'packages/args',
     'packages/runtime-terminal',
     'packages/terminal-zero',
     'packages/terminal-ui',
