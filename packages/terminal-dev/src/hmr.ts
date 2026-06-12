@@ -23,16 +23,22 @@ interface InstanceEntry {
     ctx: ComponentSetupContext;
 }
 
+/**
+ * The latest tracked setup for one component identity. Every factory defined
+ * under the identity gets a trampoline `__setup` reading `current`, so a
+ * redefine only has to swap this box — importers that captured a factory
+ * before the edit (tab catalogs, navigation parents) then mount the new code,
+ * and no old factory is ever retained or iterated.
+ */
+interface SetupBox {
+    current: SetupFn;
+}
+
 interface HmrState {
     /** Live instances per component identity (`moduleId:index`). */
     instancesByComponentId: Map<string, Set<InstanceEntry>>;
-    /**
-     * Every factory ever defined under an identity. Importers capture factory
-     * references at import time and keep them across hot updates (a tab
-     * catalog, a navigation parent), so on redefine each old factory must be
-     * repointed at the new setup or remounts resurrect the old code.
-     */
-    factoriesByComponentId: Map<string, Set<{ __setup?: unknown }>>;
+    /** Current setup per component identity; see {@link SetupBox}. */
+    setupByComponentId: Map<string, SetupBox>;
     /** Definition order within the module currently executing. */
     moduleComponentIndex: Map<string, number>;
     currentModuleId: string | null;
@@ -47,13 +53,13 @@ interface HmrState {
 const STATE_KEY = Symbol.for('sigx.terminal-dev.hmr-state');
 const state: HmrState = ((globalThis as any)[STATE_KEY] ??= {
     instancesByComponentId: new Map(),
-    factoriesByComponentId: new Map(),
+    setupByComponentId: new Map(),
     moduleComponentIndex: new Map(),
     currentModuleId: null,
     installed: false,
 } satisfies HmrState);
 // An older runtime instance may have seeded the singleton without this map.
-(state as Partial<HmrState>).factoriesByComponentId ??= new Map();
+(state as Partial<HmrState>).setupByComponentId ??= new Map();
 
 /**
  * Mark `moduleId` as the module currently executing. Injected by the dev
@@ -134,22 +140,20 @@ export function installHMRPlugin(): void {
 
                 return renderFn;
             };
-            factory.__setup = trackedSetup;
-
-            // Repoint every PREVIOUS factory of this identity at the new
-            // setup: importers that captured a factory before the edit (tab
-            // catalogs, navigation parents) keep mounting through it —
-            // runtime-core reads `__setup` at instantiation, so this makes
-            // those stale references mount the new code instead of the old.
-            let factories = state.factoriesByComponentId.get(componentId);
-            if (!factories) {
-                factories = new Set();
-                state.factoriesByComponentId.set(componentId, factories);
+            // All factories of this identity — including stale references
+            // held by importers since before the edit — mount through a
+            // trampoline reading the identity's setup box, so swapping
+            // `box.current` is the whole "repoint old factories" story.
+            // runtime-core reads `__setup` at instantiation.
+            let box = state.setupByComponentId.get(componentId);
+            if (!box) {
+                box = { current: trackedSetup };
+                state.setupByComponentId.set(componentId, box);
+            } else {
+                box.current = trackedSetup;
             }
-            for (const previous of factories) {
-                previous.__setup = trackedSetup;
-            }
-            factories.add(factory);
+            const stableBox = box;
+            factory.__setup = (ctx: ComponentSetupContext) => stableBox.current(ctx);
         },
     });
 }

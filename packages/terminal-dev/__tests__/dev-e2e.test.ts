@@ -193,8 +193,14 @@ describe('dev runner e2e', () => {
         editFile('src/ui.tsx', ui('two'));
         const uiUrl = pathToFileURL(path.join(dir, 'src', 'ui.tsx')).href;
         let uiVersion = '';
+        let importInFlight = false;
         await until(() => {
-            void handle!.runner.import(uiUrl).then((mod) => { uiVersion = mod.VERSION; }, () => {});
+            if (!importInFlight && uiVersion !== 'two') {
+                importInFlight = true;
+                handle!.runner.import(uiUrl)
+                    .then((mod) => { uiVersion = mod.VERSION; }, () => {})
+                    .finally(() => { importInFlight = false; });
+            }
             return uiVersion === 'two';
         }, 'runner serving the edited module');
 
