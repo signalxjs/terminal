@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **`@sigx/args` — type-aware command & argument parser** (#60): `defineCommand` with a typed args schema (string/number/boolean/enum, positionals, variadic rest, `required`, defaults, aliases, `--no-x` negation) where the schema drives compile-time inference of the handler's `ctx.args`; nested subcommands with aliases; automatic `--help`/`--version`; a headless `HelpCatalog` data model with a built-in plain-text renderer (themed TUI renderers can consume the catalog directly); typed `ParseError` codes for programmatic error rendering; `runMain` for binaries and a throwing `runCommand` for embedding (e.g. the sigx CLI shell). Zero runtime dependencies, platform-neutral. Designed as a drop-in replacement for citty in `@sigx/cli`.
+
 ## [0.5.1] - 2026-06-12
 
 New package: `@sigx/terminal-dev` — HMR dev mode for terminal apps. (Its `0.5.0` was briefly published and unpublished while bootstrapping npm trusted publishing; npm burns published version numbers, hence the lockstep patch bump.)

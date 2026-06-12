@@ -1,0 +1,51 @@
+{
+    "name": "@sigx/args",
+    "version": "0.5.1",
+    "description": "Type-aware command & argument parser for CLIs — typed args schemas, nested subcommands, headless help catalog",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "dev": "vite build --watch"
+    },
+    "keywords": [
+        "sigx",
+        "signalx",
+        "cli",
+        "args",
+        "argv",
+        "command",
+        "parser",
+        "typescript"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/terminal.git",
+        "directory": "packages/args"
+    },
+    "homepage": "https://github.com/signalxjs/terminal/tree/main/packages/args",
+    "bugs": {
+        "url": "https://github.com/signalxjs/terminal/issues"
+    },
+    "devDependencies": {
+        "@sigx/vite": "^0.4.7",
+        "@types/node": "^22.0.0",
+        "typescript": "^5.9.3",
+        "vite": "^8.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

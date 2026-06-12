@@ -11,6 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "paths": {
+      "@sigx/args": ["./packages/args/src/index.ts"],
       "@sigx/runtime-terminal": ["./packages/runtime-terminal/src/index.ts"],
       "@sigx/terminal-zero": ["./packages/terminal-zero/src/index.ts"],
       "@sigx/terminal-zero/*": ["./packages/terminal-zero/src/*"],
@@ -22,7 +23,8 @@
   },
   "include": [
     "packages/*/src/**/*.ts",
-    "packages/*/src/**/*.tsx"
+    "packages/*/src/**/*.tsx",
+    "packages/args/__tests__/**/*.ts"
   ],
   "exclude": ["node_modules", "**/dist"]
 }
