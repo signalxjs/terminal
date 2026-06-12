@@ -69,6 +69,7 @@ const ui = (version: string) => `
 import { component } from '@sigx/runtime-core';
 import { store } from './store';
 
+export const VERSION = ${JSON.stringify(version)};
 export const Label = component(() => () => (
     <text>version ${version} n={String(store.n)}</text>
 ));
@@ -185,10 +186,17 @@ describe('dev runner e2e', () => {
         await boot();
         await until(() => output().includes('tab a showing'), 'first frame');
 
-        // Edit the hidden component; nothing is mounted, so nothing repaints —
-        // give the hot update time to apply before navigating.
+        // Edit the hidden component; nothing is mounted, so nothing repaints.
+        // Wait until the runner's module graph serves the new version (the
+        // edited module is invalidated, so importing it re-executes it
+        // through the same transform + HMR-runtime path) before navigating.
         editFile('src/ui.tsx', ui('two'));
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const uiUrl = pathToFileURL(path.join(dir, 'src', 'ui.tsx')).href;
+        let uiVersion = '';
+        await until(() => {
+            void handle!.runner.import(uiUrl).then((mod) => { uiVersion = mod.VERSION; }, () => {});
+            return uiVersion === 'two';
+        }, 'runner serving the edited module');
 
         const storeUrl = pathToFileURL(path.join(dir, 'src', 'store.ts')).href;
         const storeMod = await handle!.runner.import(storeUrl);

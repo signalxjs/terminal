@@ -53,7 +53,7 @@ const state: HmrState = ((globalThis as any)[STATE_KEY] ??= {
     installed: false,
 } satisfies HmrState);
 // An older runtime instance may have seeded the singleton without this map.
-state.factoriesByComponentId ??= new Map();
+(state as Partial<HmrState>).factoriesByComponentId ??= new Map();
 
 /**
  * Mark `moduleId` as the module currently executing. Injected by the dev
