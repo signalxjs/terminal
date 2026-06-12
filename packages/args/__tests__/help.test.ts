@@ -31,7 +31,7 @@ describe('buildHelpCatalog', () => {
     it('splits flags from positionals in declaration order', () => {
         expect(catalog.positionals.map((p) => p.name)).toEqual(['entry', 'files']);
         expect(catalog.positionals[1]).toMatchObject({ kind: 'rest', multiple: true });
-        expect(catalog.flags.map((f) => f.name)).toEqual(['port', 'host', 'mode', 'secret', 'help', 'version']);
+        expect(catalog.flags.map((f) => f.name)).toEqual(['port', 'host', 'mode', 'secret', 'help']);
     });
 
     it('captures arg facts a themed renderer needs', () => {
@@ -42,12 +42,15 @@ describe('buildHelpCatalog', () => {
         expect(catalog.flags[3]).toMatchObject({ hidden: true });
     });
 
-    it('synthesizes builtin --help and --version entries', () => {
-        const builtins = catalog.flags.filter((f) => f.builtin).map((f) => f.name);
-        expect(builtins).toEqual(['help', 'version']);
-        // No meta.version → no version entry
-        const sub = buildHelpCatalog(defineCommand({ run() {} }));
-        expect(sub.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help']);
+    it('synthesizes builtin --help everywhere, --version only at the root', () => {
+        // Root catalog (default path, length 1) advertises --version…
+        const root = buildHelpCatalog(dev);
+        expect(root.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help', 'version']);
+        // …but a subcommand catalog does not — runMain only intercepts it at the root.
+        expect(catalog.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help']);
+        // No meta.version → no version entry even at the root
+        const plain = buildHelpCatalog(defineCommand({ run() {} }));
+        expect(plain.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help']);
     });
 
     it('lists subcommands with aliases and hidden flags', () => {

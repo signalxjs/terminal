@@ -101,7 +101,9 @@ export function buildHelpCatalog(cmd: AnyCommand, path?: readonly string[]): Hel
         hidden: false,
         builtin: true
     });
-    if (cmd.meta.version !== undefined) {
+    // runMain only intercepts --version at the root invocation, so only the
+    // root catalog (path length <= 1) advertises the builtin flag.
+    if (cmd.meta.version !== undefined && (path === undefined || path.length <= 1)) {
         flags.push({
             name: 'version',
             kind: 'flag',

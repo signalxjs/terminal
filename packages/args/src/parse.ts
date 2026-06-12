@@ -119,10 +119,10 @@ export function parseArgs<const A extends ArgsDef>(
                 const word = raw.toLowerCase();
                 if (TRUE_WORDS.has(word)) return true;
                 if (FALSE_WORDS.has(word)) return false;
-                fail('INVALID_BOOLEAN', `Invalid value '${raw}' for --${camelToKebab(key)} (expected true|false)`, {
+                fail('INVALID_BOOLEAN', `Invalid value '${raw}' for --${camelToKebab(key)} (expected true|false|1|0|yes|no)`, {
                     arg: key,
                     received: raw,
-                    expected: 'true|false'
+                    expected: 'true|false|1|0|yes|no'
                 });
                 return false; // unreachable — fail() throws
             }
