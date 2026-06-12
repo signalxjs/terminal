@@ -1,95 +1,139 @@
 /**
- * Command definition + subcommand resolution.
+ * Fluent command builder + subcommand resolution.
  *
- * `defineCommand` normalizes a definition (folds the `description` shorthand
- * into `meta`) and eagerly validates the args schema so definition bugs throw
- * at startup, not mid-parse. `resolveCommand` walks the subcommand tree by
- * matching the leading non-flag tokens against keys and aliases.
+ * `command(name)` starts a chain — `.describe()`, `.version()`, `.args()`,
+ * `.subcommands()`, `.run()`. There is no `.build()`: the builder IS the
+ * command, so a group without a handler is passed to `runMain` as-is, and
+ * `.run()` (terminal) returns the finished, opaque `Command`. The args schema
+ * is validated eagerly inside `.args()` so definition bugs throw at startup,
+ * not mid-parse. `resolveCommand` walks the subcommand tree by matching the
+ * leading non-flag tokens against keys and aliases.
  */
 
+import type { ArgsShape, InferArgs } from './arg.js';
+import { toArgsDef } from './arg.js';
 import { DefinitionError, ParseError } from './errors.js';
-import { aliasesOf, camelToKebab } from './parse.js';
-import type { AnyCommand, ArgsDef, Command, CommandDef } from './types.js';
+import { validateArgs } from './parse.js';
+import type { ArgsDef, CommandMeta } from './types.js';
 
-function validateArgs(argsDef: ArgsDef | undefined, reserved: Map<string, string>): void {
-    if (!argsDef) return;
-    const seen = new Map<string, string>();
-    const claim = (name: string, key: string) => {
-        const reservedBy = reserved.get(name);
-        if (reservedBy !== undefined) {
-            throw new DefinitionError(`Arg '${key}' name/alias '${name}' is reserved for the builtin ${reservedBy}`);
-        }
-        const owner = seen.get(name);
-        if (owner !== undefined && owner !== key) {
-            throw new DefinitionError(`Arg '${key}' name/alias '${name}' collides with arg '${owner}'`);
-        }
-        seen.set(name, key);
-    };
-
-    let optionalPositional: string | undefined;
-    let restKey: string | undefined;
-
-    for (const [key, def] of Object.entries(argsDef)) {
-        if (key === '_') {
-            throw new DefinitionError(`Arg key '_' is reserved for post-'--' tokens`);
-        }
-        if ('required' in def && def.required && 'default' in def && def.default !== undefined) {
-            throw new DefinitionError(`Arg '${key}' cannot be both required and have a default`);
-        }
-        if (def.type === 'enum' && def.default !== undefined && !def.options.includes(def.default)) {
-            throw new DefinitionError(
-                `Arg '${key}' default '${def.default}' is not one of its options (${def.options.join('|')})`
-            );
-        }
-        if (def.type === 'positional') {
-            if (restKey !== undefined) {
-                throw new DefinitionError(`Positional '${key}' cannot come after rest arg '${restKey}'`);
-            }
-            if (def.required && optionalPositional !== undefined) {
-                throw new DefinitionError(
-                    `Required positional '${key}' cannot come after optional positional '${optionalPositional}'`
-                );
-            }
-            if (!def.required) optionalPositional = key;
-        } else if (def.type === 'rest') {
-            if (restKey !== undefined) {
-                throw new DefinitionError(`Only one rest arg is allowed ('${restKey}' and '${key}')`);
-            }
-            restKey = key;
-        } else {
-            claim(key, key);
-            claim(camelToKebab(key), key);
-            for (const alias of aliasesOf(def)) {
-                if (alias.startsWith('-')) {
-                    // parseArgs strips leading dashes before resolution, so a
-                    // dashed alias would silently never match.
-                    throw new DefinitionError(
-                        `Arg '${key}' alias '${alias}' must not include the leading dash (use '${alias.replace(/^-+/, '')}')`
-                    );
-                }
-                claim(alias, key);
-                // parseArgs resolves kebab↔camel spellings interchangeably, so
-                // an alias also claims its kebab form ('dryRun' vs 'dry-run'
-                // across two args would be a footgun, not two distinct flags).
-                const kebab = camelToKebab(alias);
-                if (kebab !== alias && !kebab.startsWith('-')) claim(kebab, key);
-            }
-        }
-    }
+export interface CommandContext<S extends ArgsShape = ArgsShape> {
+    args: InferArgs<S>;
+    /** The argv slice given to this command (after subcommand descent). */
+    rawArgs: string[];
+    /** The resolved (deepest) command. */
+    cmd: AnyCommand;
+    root: AnyCommand;
+    /** Command path, e.g. ['sigx', 'dev']. */
+    path: string[];
+    /** Unrecognized flag tokens — populated only when allowUnknownFlags is true. */
+    unknownFlags: string[];
 }
 
-export function defineCommand<const A extends ArgsDef>(def: CommandDef<A>): Command<A> {
+/** @internal Normalized command state — what run/help/resolve consume. */
+export interface CommandState {
+    meta: CommandMeta;
+    args?: ArgsDef;
+    subCommands?: Record<string, AnyCommand>;
+    allowUnknownFlags?: boolean;
+    run?: (ctx: CommandContext) => void | Promise<void>;
+}
+
+/** A finished command — what `runMain`, `resolveCommand`, and `buildHelpCatalog` accept. */
+export interface Command<S extends ArgsShape = ArgsShape> {
+    /** @internal */
+    readonly '~cmd': CommandState;
+    /** Phantom carrier of the args shape — never assigned at runtime. */
+    readonly '~args'?: (s: S) => S;
+}
+
+// oxlint-disable-next-line no-explicit-any -- variance escape hatch: heterogeneous command trees
+export type AnyCommand = Command<any>;
+
+/** @internal */
+export function defOf(cmd: AnyCommand): CommandState {
+    return cmd['~cmd'];
+}
+
+function reservedNames(meta: CommandMeta): Map<string, string> {
     const reserved = new Map([
         ['help', '--help'],
         ['h', '-h']
     ]);
-    if (def.meta?.version !== undefined) reserved.set('version', '--version');
-    validateArgs(def.args, reserved);
-    const meta = { ...def.meta };
-    if (meta.description === undefined && def.description !== undefined) {
-        meta.description = def.description;
+    if (meta.version !== undefined) reserved.set('version', '--version');
+    return reserved;
+}
+
+export class CommandBuilder<S extends ArgsShape = Record<never, never>> implements Command<S> {
+    /** @internal */
+    readonly '~cmd': CommandState;
+    declare readonly '~args'?: (s: S) => S;
+
+    /** @internal — start chains with `command(name)`. */
+    constructor(state: CommandState) {
+        this['~cmd'] = state;
     }
-    return { ...def, meta };
+
+    private patch(patch: Partial<CommandState>): CommandState {
+        return { ...this['~cmd'], ...patch };
+    }
+
+    private patchMeta(patch: Partial<CommandMeta>): CommandBuilder<S> {
+        return new CommandBuilder<S>(this.patch({ meta: { ...this['~cmd'].meta, ...patch } }));
+    }
+
+    describe(text: string): CommandBuilder<S> {
+        return this.patchMeta({ description: text });
+    }
+
+    /** Enables the automatic root `--version` flag and reserves the name. */
+    version(version: string): CommandBuilder<S> {
+        const next = this.patchMeta({ version });
+        // Re-validate so .version() after .args() still enforces the reservation.
+        validateArgs(next['~cmd'].args, reservedNames(next['~cmd'].meta));
+        return next;
+    }
+
+    /** Alternate names this command matches as a subcommand. */
+    aliases(...names: string[]): CommandBuilder<S> {
+        return this.patchMeta({ aliases: names });
+    }
+
+    /** Hide from the parent's COMMANDS list. */
+    hidden(): CommandBuilder<S> {
+        return this.patchMeta({ hidden: true });
+    }
+
+    /** Collect unknown flags into ctx.unknownFlags instead of throwing. */
+    allowUnknownFlags(allow = true): CommandBuilder<S> {
+        return new CommandBuilder<S>(this.patch({ allowUnknownFlags: allow }));
+    }
+
+    /** Declare the args schema (once); validated eagerly. */
+    args<T extends ArgsShape>(shape: T): CommandBuilder<T> {
+        if (this['~cmd'].args !== undefined) {
+            throw new DefinitionError('args() may only be called once per command');
+        }
+        const argsDef = toArgsDef(shape);
+        validateArgs(argsDef, reservedNames(this['~cmd'].meta));
+        return new CommandBuilder<T>(this.patch({ args: argsDef }));
+    }
+
+    subcommands(map: Record<string, AnyCommand>): CommandBuilder<S> {
+        return new CommandBuilder<S>(this.patch({ subCommands: { ...this['~cmd'].subCommands, ...map } }));
+    }
+
+    /**
+     * Attach the handler. Terminal: returns the finished `Command`, so no
+     * further refinement can change the context type the handler closed over —
+     * call `.args()`/`.subcommands()` first.
+     */
+    run(handler: (ctx: CommandContext<S>) => void | Promise<void>): Command<S> {
+        return new CommandBuilder<S>(this.patch({ run: handler as CommandState['run'] }));
+    }
+}
+
+export function command(name: string): CommandBuilder {
+    return new CommandBuilder({ meta: { name } });
 }
 
 export interface ResolvedCommand {
@@ -100,27 +144,32 @@ export interface ResolvedCommand {
     rest: string[];
 }
 
-function findSubCommand(subCommands: Record<string, AnyCommand>, token: string): { name: string; cmd: AnyCommand } | undefined {
+function findSubCommand(
+    subCommands: Record<string, AnyCommand>,
+    token: string
+): { name: string; cmd: AnyCommand } | undefined {
     const direct = subCommands[token];
     if (direct) return { name: token, cmd: direct };
     for (const [name, cmd] of Object.entries(subCommands)) {
-        if (cmd.meta.aliases?.includes(token)) return { name, cmd };
+        if (defOf(cmd).meta.aliases?.includes(token)) return { name, cmd };
     }
     return undefined;
 }
 
-/** Walk subCommands/aliases. Returns the deepest matched command + remaining argv. */
+/** Walk subcommands/aliases. Returns the deepest matched command + remaining argv. */
 export function resolveCommand(root: AnyCommand, argv: readonly string[]): ResolvedCommand {
     let cmd = root;
-    const path = [root.meta.name ?? 'cli'];
+    const path = [defOf(root).meta.name ?? 'cli'];
     let rest = [...argv];
 
-    while (cmd.subCommands) {
+    for (;;) {
+        const def = defOf(cmd);
+        if (!def.subCommands) break;
         const token = rest[0];
         if (token === undefined || token.startsWith('-')) break;
-        const match = findSubCommand(cmd.subCommands, token);
+        const match = findSubCommand(def.subCommands, token);
         if (!match) {
-            if (cmd.run) break; // default-command: tokens are this command's own args
+            if (def.run) break; // default-command: tokens are this command's own args
             throw new ParseError('UNKNOWN_COMMAND', `Unknown command '${token}'`, {
                 arg: token,
                 received: token,

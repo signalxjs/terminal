@@ -21,7 +21,7 @@ Full guides, API reference and live examples → **<https://sigx.dev/terminal/>*
 | [`@sigx/terminal-zero`](./packages/terminal-zero) | Headless design-system foundation: theme engine, token contract, layout primitives, prompts engine. |
 | [`@sigx/terminal-ui`](./packages/terminal-ui) | Themed component library (SigX-tui skin): forms, feedback, navigation, data, fx, tasks. |
 | [`@sigx/terminal-dev`](./packages/terminal-dev) | HMR dev runner: `sigx-terminal-dev` runs your app under Vite — save a component, the running TUI updates in place. |
-| [`@sigx/args`](./packages/args) | Type-aware command & argument parser: typed args schemas drive the handler's `ctx.args` types; nested subcommands, auto `--help`, headless help catalog. |
+| [`@sigx/args`](./packages/args) | Fluent, type-aware command & argument parser: chainable arg builders drive the handler's `ctx.args` types; nested subcommands, auto `--help`, headless help catalog. |
 
 ## Install
 

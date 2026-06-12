@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ParseError, defineCommand, runCommand, runMain } from '../src/index';
+import { a, command, ParseError, runCommand, runMain } from '../src/index';
 
 function io() {
     const out: string[] = [];
@@ -17,21 +17,20 @@ afterEach(() => {
 
 describe('runMain', () => {
     const makeRoot = (sink: { calls: unknown[] }) =>
-        defineCommand({
-            meta: { name: 'sigx', version: '1.2.3', description: 'sigx cli' },
-            subCommands: {
-                dev: defineCommand({
-                    description: 'dev server',
-                    args: {
-                        port: { type: 'number', alias: 'p', required: true },
-                        host: { type: 'string', default: 'localhost' }
-                    },
-                    run(ctx) {
+        command('sigx')
+            .version('1.2.3')
+            .describe('sigx cli')
+            .subcommands({
+                dev: command('dev')
+                    .describe('dev server')
+                    .args({
+                        port: a.number().alias('p').required(),
+                        host: a.string().default('localhost')
+                    })
+                    .run((ctx) => {
                         sink.calls.push(ctx.args);
-                    }
-                })
-            }
-        });
+                    })
+            });
 
     it('dispatches to a nested run with typed args', async () => {
         const sink = { calls: [] as unknown[] };
@@ -111,11 +110,8 @@ describe('runMain', () => {
     });
 
     it('respects an exit code set by the handler itself', async () => {
-        const cmd = defineCommand({
-            meta: { name: 'soft' },
-            run() {
-                process.exitCode = 2;
-            }
+        const cmd = command('soft').run(() => {
+            process.exitCode = 2;
         });
         const { opts } = io();
         await runMain(cmd, { rawArgs: [], ...opts });
@@ -123,11 +119,8 @@ describe('runMain', () => {
     });
 
     it('turns handler throws into exit code 1', async () => {
-        const cmd = defineCommand({
-            meta: { name: 'boom' },
-            run() {
-                throw new Error('kaput');
-            }
+        const cmd = command('boom').run(() => {
+            throw new Error('kaput');
         });
         const { err, opts } = io();
         await runMain(cmd, { rawArgs: [], ...opts });
@@ -139,13 +132,11 @@ describe('runMain', () => {
 describe('runCommand', () => {
     it('returns the context and runs the handler', async () => {
         let ran = false;
-        const cmd = defineCommand({
-            meta: { name: 'x' },
-            args: { entry: { type: 'positional' } },
-            run() {
+        const cmd = command('x')
+            .args({ entry: a.positional() })
+            .run(() => {
                 ran = true;
-            }
-        });
+            });
         const ctx = await runCommand(cmd, { rawArgs: ['main.ts'] });
         expect(ran).toBe(true);
         expect(ctx.args).toEqual({ entry: 'main.ts', _: [] });
@@ -154,12 +145,16 @@ describe('runCommand', () => {
     });
 
     it('propagates ParseError instead of printing', async () => {
-        const cmd = defineCommand({ meta: { name: 'x' }, args: { port: { type: 'number', required: true } }, run() {} });
+        const cmd = command('x')
+            .args({ port: a.number().required() })
+            .run(() => {});
         await expect(runCommand(cmd, { rawArgs: [] })).rejects.toBeInstanceOf(ParseError);
     });
 
     it('exposes unknown flags when allowed', async () => {
-        const cmd = defineCommand({ meta: { name: 'x' }, allowUnknownFlags: true, run() {} });
+        const cmd = command('x')
+            .allowUnknownFlags()
+            .run(() => {});
         const ctx = await runCommand(cmd, { rawArgs: ['--mystery'] });
         expect(ctx.unknownFlags).toEqual(['--mystery']);
     });

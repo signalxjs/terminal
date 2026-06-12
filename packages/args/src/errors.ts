@@ -4,7 +4,7 @@
  * `ParseError` carries a machine-readable `code` plus structured `detail` so
  * hosts (e.g. a TUI shell) can render rich error UI without string parsing.
  * `DefinitionError` signals a programmer mistake in a command definition and
- * is thrown eagerly by `defineCommand`.
+ * is thrown eagerly by `command(...).args()` and `parseArgs`.
  */
 
 export type ParseErrorCode =
