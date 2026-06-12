@@ -26,6 +26,13 @@ interface InstanceEntry {
 interface HmrState {
     /** Live instances per component identity (`moduleId:index`). */
     instancesByComponentId: Map<string, Set<InstanceEntry>>;
+    /**
+     * Every factory ever defined under an identity. Importers capture factory
+     * references at import time and keep them across hot updates (a tab
+     * catalog, a navigation parent), so on redefine each old factory must be
+     * repointed at the new setup or remounts resurrect the old code.
+     */
+    factoriesByComponentId: Map<string, Set<{ __setup?: unknown }>>;
     /** Definition order within the module currently executing. */
     moduleComponentIndex: Map<string, number>;
     currentModuleId: string | null;
@@ -40,10 +47,13 @@ interface HmrState {
 const STATE_KEY = Symbol.for('sigx.terminal-dev.hmr-state');
 const state: HmrState = ((globalThis as any)[STATE_KEY] ??= {
     instancesByComponentId: new Map(),
+    factoriesByComponentId: new Map(),
     moduleComponentIndex: new Map(),
     currentModuleId: null,
     installed: false,
 } satisfies HmrState);
+// An older runtime instance may have seeded the singleton without this map.
+state.factoriesByComponentId ??= new Map();
 
 /**
  * Mark `moduleId` as the module currently executing. Injected by the dev
@@ -108,7 +118,7 @@ export function installHMRPlugin(): void {
 
             // Wrap setup so future mounts of this identity are tracked.
             const originalSetup = setup as SetupFn;
-            factory.__setup = (ctx: ComponentSetupContext) => {
+            const trackedSetup = (ctx: ComponentSetupContext) => {
                 const renderFn = originalSetup(ctx);
 
                 const instance: InstanceEntry = { ctx };
@@ -124,6 +134,22 @@ export function installHMRPlugin(): void {
 
                 return renderFn;
             };
+            factory.__setup = trackedSetup;
+
+            // Repoint every PREVIOUS factory of this identity at the new
+            // setup: importers that captured a factory before the edit (tab
+            // catalogs, navigation parents) keep mounting through it —
+            // runtime-core reads `__setup` at instantiation, so this makes
+            // those stale references mount the new code instead of the old.
+            let factories = state.factoriesByComponentId.get(componentId);
+            if (!factories) {
+                factories = new Set();
+                state.factoriesByComponentId.set(componentId, factories);
+            }
+            for (const previous of factories) {
+                previous.__setup = trackedSetup;
+            }
+            factories.add(factory);
         },
     });
 }

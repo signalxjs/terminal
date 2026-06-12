@@ -136,6 +136,54 @@ describe('hmr runtime', () => {
         expect(out).toContain('second-v2');
     });
 
+    it('remounts from a stale factory reference with the NEW setup (tab navigation)', () => {
+        // The navigation parent (e.g. a catalog) captured this factory at
+        // import time and never sees the re-executed module's new export.
+        registerHMRModule('test:stale-mod');
+        const Tab = component(() => () => jsx('text', { children: ['tab-v1'] }));
+        clearHMRModule('test:stale-mod');
+
+        const cap = captureOutput();
+        let handle = renderTerminal(jsx(Tab, {}), { patchConsole: false });
+        flush();
+        expect(cap.output()).toContain('tab-v1');
+
+        // Edit while mounted: the live instance patches in place...
+        cap.clear();
+        registerHMRModule('test:stale-mod');
+        component(() => () => jsx('text', { children: ['tab-v2'] }));
+        clearHMRModule('test:stale-mod');
+        flush();
+        expect(cap.output()).toContain('tab-v2');
+
+        // ...navigate away (unmount) and back: the remount goes through the
+        // STALE factory reference and must still get the new setup.
+        handle.unmount();
+        const cap2 = captureOutput();
+        handle = renderTerminal(jsx(Tab, {}), { patchConsole: false });
+        flush();
+        expect(cap2.output()).toContain('tab-v2');
+        handle.unmount();
+        unmount = null;
+    });
+
+    it('mounts the NEW setup from a stale factory even when no instance was live at edit time', () => {
+        // The user is on tab A and edits tab B's component: nothing to patch
+        // at edit time, but mounting B later must use the new code.
+        registerHMRModule('test:hidden-mod');
+        const Hidden = component(() => () => jsx('text', { children: ['hidden-v1'] }));
+        clearHMRModule('test:hidden-mod');
+
+        registerHMRModule('test:hidden-mod');
+        component(() => () => jsx('text', { children: ['hidden-v2'] }));
+        clearHMRModule('test:hidden-mod');
+
+        const cap = captureOutput();
+        unmount = renderTerminal(jsx(Hidden, {}), { patchConsole: false }).unmount;
+        flush();
+        expect(cap.output()).toContain('hidden-v2');
+    });
+
     it('scopes identities to the module body: definitions after the clear get none', () => {
         registerHMRModule('test:scope-mod');
         const Scoped = component(() => () => jsx('text', { children: ['scoped'] }));

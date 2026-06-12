@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - **`sigx-terminal-dev`: quitting the app with Ctrl+C no longer fails the dev process** (#48): raw mode delivers Ctrl+C to the app as a key (the renderer exits 130, the SIGINT convention) instead of signalling the process group, so wrappers like pnpm reported `ELIFECYCLE … exit code 130`. The bin now treats the app's Ctrl+C exit as a clean end of the dev session and exits 0; real failure codes pass through unchanged.
+- **HMR: edits no longer lost when navigating away and back** (#50): hot updates only patched live instances, so a parent that captured the component reference before the edit (a tab catalog, a navigation view) kept mounting the OLD factory — switching tabs reverted the edit, and editing a hidden tab's component never showed. The HMR runtime now tracks every factory per component identity and repoints previous factories' setup at the new code on redefine, so remounts through stale references mount the edited version.
 
 ## [0.5.0] - 2026-06-12
 
