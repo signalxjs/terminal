@@ -164,7 +164,6 @@ describe('hmr runtime', () => {
         flush();
         expect(cap2.output()).toContain('tab-v2');
         handle.unmount();
-        unmount = null;
     });
 
     it('mounts the NEW setup from a stale factory even when no instance was live at edit time', () => {
