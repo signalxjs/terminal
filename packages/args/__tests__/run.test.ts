@@ -49,6 +49,15 @@ describe('runMain', () => {
         expect(process.exitCode).toBe(0);
     });
 
+    it('does not hijack --version after a subcommand token', async () => {
+        const sink = { calls: [] as unknown[] };
+        const { out, err, opts } = io();
+        await runMain(makeRoot(sink), { rawArgs: ['dev', '--version'], ...opts });
+        expect(out).toEqual([]);
+        expect(err[0]).toBe("error: Unknown flag '--version'");
+        expect(process.exitCode).toBe(1);
+    });
+
     it('renders root help with --help', async () => {
         const sink = { calls: [] as unknown[] };
         const { out, opts } = io();

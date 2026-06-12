@@ -11,10 +11,14 @@ import { DefinitionError, ParseError } from './errors.js';
 import { aliasesOf, camelToKebab } from './parse.js';
 import type { AnyCommand, ArgsDef, Command, CommandDef } from './types.js';
 
-function validateArgs(argsDef: ArgsDef | undefined): void {
+function validateArgs(argsDef: ArgsDef | undefined, reserved: Map<string, string>): void {
     if (!argsDef) return;
     const seen = new Map<string, string>();
     const claim = (name: string, key: string) => {
+        const reservedBy = reserved.get(name);
+        if (reservedBy !== undefined) {
+            throw new DefinitionError(`Arg '${key}' name/alias '${name}' is reserved for the builtin ${reservedBy}`);
+        }
         const owner = seen.get(name);
         if (owner !== undefined && owner !== key) {
             throw new DefinitionError(`Arg '${key}' name/alias '${name}' collides with arg '${owner}'`);
@@ -61,7 +65,12 @@ function validateArgs(argsDef: ArgsDef | undefined): void {
 }
 
 export function defineCommand<const A extends ArgsDef>(def: CommandDef<A>): Command<A> {
-    validateArgs(def.args);
+    const reserved = new Map([
+        ['help', '--help'],
+        ['h', '-h']
+    ]);
+    if (def.meta?.version !== undefined) reserved.set('version', '--version');
+    validateArgs(def.args, reserved);
     const meta = { ...def.meta };
     if (meta.description === undefined && def.description !== undefined) {
         meta.description = def.description;

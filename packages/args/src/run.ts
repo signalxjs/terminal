@@ -31,6 +31,19 @@ function preDashDash(argv: readonly string[]): readonly string[] {
     return end === -1 ? argv : argv.slice(0, end);
 }
 
+/**
+ * Root-only --version: stop scanning at the first non-flag token, so
+ * `sigx dev --version` is left to the subcommand's own parsing.
+ */
+function wantsRootVersion(argv: readonly string[]): boolean {
+    for (const token of argv) {
+        if (token === '--') return false;
+        if (token === '--version') return true;
+        if (!token.startsWith('-')) return false;
+    }
+    return false;
+}
+
 interface ResolvedRun {
     cmd: AnyCommand;
     path: string[];
@@ -71,7 +84,7 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     const stdout = opts.stdout ?? ((text: string) => console.log(text));
     const stderr = opts.stderr ?? ((text: string) => console.error(text));
 
-    if (cmd.meta.version !== undefined && preDashDash(rawArgs).includes('--version')) {
+    if (cmd.meta.version !== undefined && wantsRootVersion(rawArgs)) {
         stdout(cmd.meta.version);
         setExitCode(0);
         return;

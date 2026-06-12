@@ -33,9 +33,18 @@ describe('defineCommand', () => {
         ['enum default outside options', { mode: { type: 'enum', options: ['a'], default: 'b' } }],
         ['alias collision', { port: { type: 'number', alias: 'p' }, print: { type: 'boolean', alias: 'p' } }],
         ['kebab/camel key collision', { dryRun: { type: 'boolean' }, 'dry-run': { type: 'boolean' } }],
-        ['reserved key _', { _: { type: 'string' } }]
+        ['reserved key _', { _: { type: 'string' } }],
+        ['flag named help', { help: { type: 'boolean' } }],
+        ['h alias (reserved for the builtin -h)', { host: { type: 'string', alias: 'h' } }]
     ] as const)('rejects %s', (_label, args) => {
         expect(() => defineCommand({ args: args as never })).toThrow(DefinitionError);
+    });
+
+    it('reserves version only when meta.version is set', () => {
+        expect(() =>
+            defineCommand({ meta: { version: '1.0.0' }, args: { version: { type: 'boolean' } } })
+        ).toThrow(DefinitionError);
+        expect(() => defineCommand({ args: { version: { type: 'boolean' } } })).not.toThrow();
     });
 });
 
