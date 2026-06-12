@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal-ui",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "SigX-tui design-system components for SignalX terminal UIs, built on @sigx/terminal-zero",
     "type": "module",
     "main": "./dist/index.js",
