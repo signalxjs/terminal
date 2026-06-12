@@ -94,7 +94,10 @@ export class ValueArg<
         >;
     }
 
-    /** Repeatable flag: `--tag a --tag b` → array (always present, [] if absent). */
+    /**
+     * Repeatable flag: `--tag a --tag b` → array, always present — `[]` when
+     * absent, or `[default]` when combined with `.default(v)`.
+     */
     multiple(): ValueArg<Base, { presence: S['presence']; multiple: true }> {
         return this.with({ multiple: true }) as unknown as ValueArg<
             Base,

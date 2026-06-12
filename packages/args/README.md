@@ -60,7 +60,7 @@ builder can be shared and re-refined safely):
 | --- | --- | --- |
 | `.required()` | all but rest | non-optional; parse fails when absent |
 | `.default(v)` | all but rest | non-optional; `v` is type-checked (an enum default must be one of its options) |
-| `.multiple()` | string, number, enum | repeatable flag → array, always present (`[]` if absent) |
+| `.multiple()` | string, number, enum | repeatable flag → array, always present: `[]` when absent, or `[v]` when combined with `.default(v)` |
 | `.alias('p', …)` | flags | alternate names; single characters become short flags (`-p`) |
 | `.negatable(false)` | boolean | disable the automatic `--no-x` negation |
 | `.describe(text)` / `.valueHint(hint)` / `.hidden()` | all | help output |

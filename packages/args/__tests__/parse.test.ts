@@ -119,6 +119,12 @@ describe('repeats', () => {
         expect(parseArgs([], shape).args.tag).toEqual([]);
     });
 
+    it('seeds a defaulted multiple flag with [default] when absent', () => {
+        const shape = { tag: a.string().default('base').multiple() };
+        expect(parseArgs([], shape).args.tag).toEqual(['base']);
+        expect(parseArgs(['--tag', 'x'], shape).args.tag).toEqual(['x']);
+    });
+
     it('last wins without multiple()', () => {
         expect(parseArgs(['--port', '1', '--port', '2'], { port: a.number() }).args.port).toBe(2);
     });

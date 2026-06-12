@@ -26,7 +26,7 @@ export interface StringArgDef extends FlagDefBase {
     type: 'string';
     required?: boolean;
     default?: string;
-    /** Repeatable flag: `--tag a --tag b` → string[] (always present, [] if absent). */
+    /** Repeatable flag: `--tag a --tag b` → string[], always present — [] when absent, [default] if defaulted. */
     multiple?: boolean;
 }
 
