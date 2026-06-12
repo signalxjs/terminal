@@ -6,27 +6,24 @@
  * Publishes all packages in this repo to npm in dependency order.
  *
  * Usage:
- *   node scripts/publish.js [--dry-run] [--tag <tag>] [--provenance]
+ *   node scripts/publish.js [--dry-run] [--tag <tag>] [--provenance] [--allow-dirty]
  *
  * Options:
- *   --dry-run     Show what would be published without actually publishing
- *   --tag         Publish with a specific tag (e.g., beta, next)
- *   --provenance  Attach an npm provenance attestation. Requires running in a
- *                 GitHub Actions workflow with `permissions: id-token: write`.
+ *   --dry-run      Show what would be published without actually publishing
+ *   --tag          Publish with a specific tag (e.g., beta, next)
+ *   --provenance   Attach an npm provenance attestation. Requires running in a
+ *                  GitHub Actions workflow with `permissions: id-token: write`.
+ *   --allow-dirty  Bypass the clean-working-tree check
  *
- * Environment Variables:
- *   NPM_TOKEN    npm automation token. Optional — only needed for local
- *                publishing or as a fallback. CI uses npm trusted publishing
- *                (OIDC) instead, configured per-package on npmjs.com.
- *                Create at: https://www.npmjs.com/settings/<username>/tokens
- *                ("Automation" type for CI use).
+ * Auth (same model as sigx core/lynx): whatever npm auth is ambient —
+ * your `npm login` session locally, or trusted publishing (OIDC) in GitHub
+ * Actions. No token plumbing; this script never touches ~/.npmrc.
  */
 
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { homedir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
@@ -49,81 +46,6 @@ const tagIndex = args.indexOf('--tag');
 const tag = tagIndex !== -1 ? args[tagIndex + 1] : null;
 const provenance = args.includes('--provenance');
 const allowDirty = args.includes('--allow-dirty');
-
-// NPM token support for CI/CD (avoids 2FA prompts)
-const NPM_TOKEN = process.env.NPM_TOKEN;
-let npmrcCreated = false;
-let originalNpmrc = null;
-const npmrcPath = join(homedir(), '.npmrc');
-
-function setupNpmToken() {
-    if (!NPM_TOKEN) return;
-
-    console.log('🔑 Using NPM_TOKEN for authentication\n');
-
-    // Backup existing .npmrc if present
-    if (existsSync(npmrcPath)) {
-        originalNpmrc = readFileSync(npmrcPath, 'utf-8');
-    }
-
-    // Write/update token to .npmrc (always update if NPM_TOKEN is set)
-    const tokenLine = `//registry.npmjs.org/:_authToken=${NPM_TOKEN}`;
-    if (originalNpmrc) {
-        // Replace existing token line or append
-        if (originalNpmrc.includes('//registry.npmjs.org/:_authToken=')) {
-            const updated = originalNpmrc.replace(
-                /\/\/registry\.npmjs\.org\/:_authToken=.*/,
-                tokenLine
-            );
-            writeFileSync(npmrcPath, updated);
-        } else {
-            writeFileSync(npmrcPath, originalNpmrc + '\n' + tokenLine);
-        }
-        npmrcCreated = true;
-    } else {
-        writeFileSync(npmrcPath, tokenLine);
-        npmrcCreated = true;
-    }
-}
-
-function cleanupNpmToken() {
-    if (!npmrcCreated) return;
-
-    if (originalNpmrc) {
-        writeFileSync(npmrcPath, originalNpmrc);
-    } else {
-        unlinkSync(npmrcPath);
-    }
-    npmrcCreated = false;
-}
-
-let signalsRegistered = false;
-function registerCleanupHandlers() {
-    if (signalsRegistered) return;
-    signalsRegistered = true;
-
-    const handle = (signal) => {
-        try {
-            cleanupNpmToken();
-        } catch (err) {
-            console.error('⚠️  Failed to clean up ~/.npmrc on exit:', err);
-        }
-        // Mirror the conventional shell exit code (128 + signal number) for SIGINT/SIGTERM.
-        const code = signal === 'SIGINT' ? 130 : signal === 'SIGTERM' ? 143 : 1;
-        process.exit(code);
-    };
-
-    process.on('SIGINT', () => handle('SIGINT'));
-    process.on('SIGTERM', () => handle('SIGTERM'));
-    process.on('uncaughtException', (err) => {
-        console.error('💥 Uncaught exception:', err);
-        handle('uncaughtException');
-    });
-    process.on('unhandledRejection', (err) => {
-        console.error('💥 Unhandled rejection:', err);
-        handle('unhandledRejection');
-    });
-}
 
 function getPackageInfo(packagePath) {
     const packageJsonPath = join(rootDir, packagePath, 'package.json');
@@ -205,18 +127,11 @@ async function main() {
         console.log('🔏 Provenance attestations enabled\n');
     }
 
-    // Register signal handlers BEFORE writing the token so a Ctrl+C between
-    // setupNpmToken() and the cleanup in `finally` still removes the token.
-    registerCleanupHandlers();
-
-    // Setup npm token if provided
-    setupNpmToken();
-
-    // Trusted publishing (npm OIDC) acquires a token at publish time, not before.
-    // Skip the whoami precheck in that mode — it would fail because no token is
-    // present yet. ACTIONS_ID_TOKEN_REQUEST_TOKEN is set by GitHub Actions when
-    // a job has `permissions: id-token: write`.
-    const isTrustedPublishing = !NPM_TOKEN && !!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+    // Trusted publishing (npm OIDC) acquires a token at publish time, not
+    // before — skip the whoami precheck in that mode (it would fail because
+    // no token exists yet). ACTIONS_ID_TOKEN_REQUEST_TOKEN is set by GitHub
+    // Actions when a job has `permissions: id-token: write`.
+    const isTrustedPublishing = !!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
 
     if (isTrustedPublishing) {
         console.log('🔐 Trusted publishing (OIDC) — skipping npm whoami precheck\n');
@@ -226,7 +141,6 @@ async function main() {
             console.log(`👤 Logged in as: ${whoami}\n`);
         } catch {
             console.error('❌ Not logged in to npm. Run: npm login');
-            console.error('   Or set NPM_TOKEN environment variable');
             throw new Error('npm login required');
         }
     }
@@ -292,11 +206,7 @@ async function main() {
     }
 }
 
-main()
-    .catch((err) => {
-        console.error(err);
-        process.exitCode = 1;
-    })
-    .finally(() => {
-        cleanupNpmToken();
-    });
+main().catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+});
