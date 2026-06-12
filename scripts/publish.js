@@ -6,7 +6,7 @@
  * Publishes all packages in this repo to npm in dependency order.
  *
  * Usage:
- *   node scripts/publish.js [--dry-run] [--tag <tag>] [--provenance]
+ *   node scripts/publish.js [--dry-run] [--tag <tag>] [--provenance] [--allow-dirty]
  *
  * Options:
  *   --dry-run      Show what would be published without actually publishing
