@@ -8,14 +8,23 @@
  * Spawns the built CLI (dist/cli.js — built before tests, like the other
  * workspace-dist suites) on fixtures that exit with a given code after start.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { spawn } from 'node:child_process';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { execSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const cliPath = path.join(here, '..', 'dist', 'cli.js');
+const pkgDir = path.join(here, '..');
+const cliPath = path.join(pkgDir, 'dist', 'cli.js');
+
+// Self-contained on a clean checkout: build this package's dist once if a
+// prior `pnpm build` hasn't (CI always has; locally it may not).
+beforeAll(() => {
+    if (!existsSync(cliPath)) {
+        execSync('pnpm run build', { cwd: pkgDir, stdio: 'ignore' });
+    }
+});
 
 function runCli(root: string): Promise<number | null> {
     return new Promise((resolve, reject) => {
@@ -41,7 +50,6 @@ describe('sigx-terminal-dev exit codes', () => {
     let dir: string;
 
     beforeEach(() => {
-        expect(existsSync(cliPath), `built CLI missing at ${cliPath} — run pnpm build first`).toBe(true);
         dir = path.join(here, '.tmp', `cli-${process.pid}-${Math.random().toString(36).slice(2, 8)}`);
         mkdirSync(path.join(dir, 'src'), { recursive: true });
     });
