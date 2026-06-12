@@ -65,6 +65,15 @@ if (!entry) {
 
 process.stderr.write(`[sigx-terminal-dev] ${path.join(path.basename(root), entry)} — edit a component to hot-update\n`);
 
+// Raw mode swallows SIGINT, so quitting the app with Ctrl+C is the renderer
+// calling process.exit(130) — only this process sees it, and a wrapping pnpm
+// script would report ELIFECYCLE 130. For a dev session that's the normal way
+// to stop, not a failure: translate it to 0. Bin-only policy — programmatic
+// startDev() embedders keep their own exit handling. Other codes pass through.
+const realExit = process.exit.bind(process);
+process.exit = ((code?: number | string | null) =>
+    realExit(code === 130 ? 0 : code)) as typeof process.exit;
+
 const handle = await startDev({
     entry,
     root,
