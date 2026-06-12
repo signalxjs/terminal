@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **SignalX core packages are now `peerDependencies`** (#64): `@sigx/reactivity` and `@sigx/runtime-core` moved from `dependencies` to `peerDependencies` (`>=0.6.0 <0.7.0`) in `@sigx/runtime-terminal`, `@sigx/terminal-zero`, `@sigx/terminal-ui`, `@sigx/terminal`, and `@sigx/terminal-dev` (runtime-core). Previously each companion package hard-pinned core with a 0.x caret range (`^0.4.9`) that cannot overlap with the range pinned by other companions or by `sigx` itself — consumers mixing versions silently got **duplicate reactivity engines** (signals from one engine invisible to the other's effects). With peers, the consumer's package manager resolves a single shared core instance. Internal sibling dependencies between the terminal packages remain regular `dependencies`. The workspace builds and the full test suite now run against core 0.6. **Consumers must install the core packages themselves** (most already do, via `sigx` or direct deps); npm 7+ auto-installs peers.
+
 ## [0.6.0] - 2026-06-12
 
 New package: `@sigx/args` — fluent, type-aware command & argument parser for CLIs.
@@ -13,10 +17,6 @@ New package: `@sigx/args` — fluent, type-aware command & argument parser for C
 ### Added
 
 - **`@sigx/args` — fluent, type-aware command & argument parser** (#60, #63): commands chain from `command(name)` (`.describe()`, `.version()`, `.args()`, `.subcommands()`, `.run()`) and args are declared with chainable `a.*` builders (`a.number().alias('p').required()` — string/number/boolean/enum, positionals, variadic rest, defaults, `--no-x` negation) whose type-state drives compile-time inference of the handler's `ctx.args`; invalid refiner combinations don't typecheck. Nested subcommands with aliases; automatic `--help`/`--version`; a headless `HelpCatalog` data model with a built-in plain-text renderer (themed TUI renderers can consume the catalog directly); typed `ParseError` codes for programmatic error rendering; `runMain` for binaries, a throwing `runCommand` for embedding (e.g. the sigx CLI shell), and a headless `parseArgs(argv, shape)`. Zero runtime dependencies, platform-neutral.
-
-### Changed
-
-- **SignalX core packages are now `peerDependencies`** (#64): `@sigx/reactivity` and `@sigx/runtime-core` moved from `dependencies` to `peerDependencies` (`>=0.6.0 <0.7.0`) in `@sigx/runtime-terminal`, `@sigx/terminal-zero`, `@sigx/terminal-ui`, `@sigx/terminal`, and `@sigx/terminal-dev` (runtime-core). Previously each companion package hard-pinned core with a 0.x caret range (`^0.4.9`) that cannot overlap with the range pinned by other companions or by `sigx` itself — consumers mixing versions silently got **duplicate reactivity engines** (signals from one engine invisible to the other's effects). With peers, the consumer's package manager resolves a single shared core instance. Internal sibling dependencies between the terminal packages remain regular `dependencies`. The workspace builds and the full test suite now run against core 0.6. **Consumers must install the core packages themselves** (most already do, via `sigx` or direct deps); npm 7+ auto-installs peers.
 
 ## [0.5.1] - 2026-06-12
 
