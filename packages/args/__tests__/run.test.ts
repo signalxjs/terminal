@@ -77,6 +77,14 @@ describe('runMain', () => {
         expect(process.exitCode).toBe(0);
     });
 
+    it('treats --help=value as a help request, ignoring the value', async () => {
+        const sink = { calls: [] as unknown[] };
+        const { out, opts } = io();
+        await runMain(makeRoot(sink), { rawArgs: ['dev', '--help=true'], ...opts });
+        expect(out.join('\n')).toContain('sigx dev — dev server');
+        expect(process.exitCode).toBe(0);
+    });
+
     it('prints help with exit code 1 for a bare group command', async () => {
         const sink = { calls: [] as unknown[] };
         const { out, opts } = io();

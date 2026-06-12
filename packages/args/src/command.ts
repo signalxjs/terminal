@@ -60,6 +60,13 @@ function validateArgs(argsDef: ArgsDef | undefined, reserved: Map<string, string
             claim(key, key);
             claim(camelToKebab(key), key);
             for (const alias of aliasesOf(def)) {
+                if (alias.startsWith('-')) {
+                    // parseArgs strips leading dashes before resolution, so a
+                    // dashed alias would silently never match.
+                    throw new DefinitionError(
+                        `Arg '${key}' alias '${alias}' must not include the leading dash (use '${alias.replace(/^-+/, '')}')`
+                    );
+                }
                 claim(alias, key);
                 // parseArgs resolves kebab↔camel spellings interchangeably, so
                 // an alias also claims its kebab form ('dryRun' vs 'dry-run'

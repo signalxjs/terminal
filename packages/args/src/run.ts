@@ -108,7 +108,11 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     }
 
     const pre = preDashDash(resolved.rest);
-    const wantsHelp = pre.includes('--help') || pre.includes('-h');
+    // --help is a request token, not a parsed boolean: an attached =value is
+    // accepted and ignored (matching the common --help=true muscle memory).
+    const wantsHelp = pre.some(
+        (t) => t === '--help' || t === '-h' || t.startsWith('--help=') || t.startsWith('-h=')
+    );
     if (wantsHelp || !resolved.cmd.run) {
         stdout(renderHelp(buildHelpCatalog(resolved.cmd, resolved.path)));
         setExitCode(wantsHelp ? 0 : 1);
