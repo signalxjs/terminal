@@ -5,8 +5,10 @@
  * themed TUI renderer can be layered on top elsewhere (zero/skin split).
  */
 
+import type { AnyCommand } from './command.js';
+import { defOf } from './command.js';
 import { aliasesOf } from './parse.js';
-import type { AnyCommand, ArgsDef } from './types.js';
+import type { ArgsDef } from './types.js';
 
 export interface HelpArgEntry {
     /** Canonical arg key (camelCase as declared); renderers kebab-case flags for display. */
@@ -50,10 +52,11 @@ export interface HelpCatalog {
 }
 
 export function buildHelpCatalog(cmd: AnyCommand, path?: readonly string[]): HelpCatalog {
+    const state = defOf(cmd);
     const flags: HelpArgEntry[] = [];
     const positionals: HelpArgEntry[] = [];
 
-    const argsDef: ArgsDef = cmd.args ?? {};
+    const argsDef: ArgsDef = state.args ?? {};
     for (const [name, def] of Object.entries(argsDef)) {
         if (def.type === 'positional' || def.type === 'rest') {
             positionals.push({
@@ -103,7 +106,7 @@ export function buildHelpCatalog(cmd: AnyCommand, path?: readonly string[]): Hel
     });
     // runMain only intercepts --version at the root invocation, so only the
     // root catalog (path length <= 1) advertises the builtin flag.
-    if (cmd.meta.version !== undefined && (path === undefined || path.length <= 1)) {
+    if (state.meta.version !== undefined && (path === undefined || path.length <= 1)) {
         flags.push({
             name: 'version',
             kind: 'flag',
@@ -118,20 +121,23 @@ export function buildHelpCatalog(cmd: AnyCommand, path?: readonly string[]): Hel
         });
     }
 
-    const subCommands: HelpSubcommandEntry[] = Object.entries(cmd.subCommands ?? {}).map(([name, sub]) => ({
-        name,
-        aliases: [...(sub.meta.aliases ?? [])],
-        ...(sub.meta.description !== undefined ? { description: sub.meta.description } : {}),
-        hidden: sub.meta.hidden ?? false
-    }));
+    const subCommands: HelpSubcommandEntry[] = Object.entries(state.subCommands ?? {}).map(([name, sub]) => {
+        const subMeta = defOf(sub).meta;
+        return {
+            name,
+            aliases: [...(subMeta.aliases ?? [])],
+            ...(subMeta.description !== undefined ? { description: subMeta.description } : {}),
+            hidden: subMeta.hidden ?? false
+        };
+    });
 
     return {
-        path: path ? [...path] : [cmd.meta.name ?? 'cli'],
-        ...(cmd.meta.version !== undefined ? { version: cmd.meta.version } : {}),
-        ...(cmd.meta.description !== undefined ? { description: cmd.meta.description } : {}),
+        path: path ? [...path] : [state.meta.name ?? 'cli'],
+        ...(state.meta.version !== undefined ? { version: state.meta.version } : {}),
+        ...(state.meta.description !== undefined ? { description: state.meta.description } : {}),
         flags,
         positionals,
         subCommands,
-        hasDefaultRun: typeof cmd.run === 'function'
+        hasDefaultRun: typeof state.run === 'function'
     };
 }

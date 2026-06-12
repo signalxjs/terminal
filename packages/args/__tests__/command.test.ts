@@ -1,64 +1,56 @@
 import { describe, expect, it } from 'vitest';
-import { DefinitionError, ParseError, defineCommand, resolveCommand } from '../src/index';
+import { a, command, DefinitionError, ParseError, resolveCommand, type ArgsShape } from '../src/index';
 
-describe('defineCommand', () => {
-    it('folds the description shorthand into meta', () => {
-        const cmd = defineCommand({ description: 'Build it', run() {} });
-        expect(cmd.meta.description).toBe('Build it');
+describe('command builder', () => {
+    it('sets the description via describe()', () => {
+        const cmd = command('build').describe('Build it').run(() => {});
+        expect(cmd['~cmd'].meta.description).toBe('Build it');
     });
 
-    it('keeps an explicit meta.description over the shorthand', () => {
-        const cmd = defineCommand({ meta: { description: 'meta wins' }, description: 'shorthand' });
-        expect(cmd.meta.description).toBe('meta wins');
+    it('refines immutably — chained calls do not mutate earlier builders', () => {
+        const base = command('x');
+        const described = base.describe('described');
+        expect(base['~cmd'].meta.description).toBeUndefined();
+        expect(described['~cmd'].meta.description).toBe('described');
     });
 
-    it('accepts a PluginCommand-shaped definition (citty-swap compatibility)', () => {
-        // Mirrors @sigx/cli's PluginCommand: description + minimal string/boolean args.
-        const cmd = defineCommand({
-            description: 'Start SSG development server',
-            args: {
-                config: { type: 'string', description: 'Path to ssg.config.ts' },
-                host: { type: 'boolean', description: 'Expose to network' }
-            },
-            async run() {}
-        });
-        expect(cmd.meta.description).toBe('Start SSG development server');
+    it('rejects a second args() call', () => {
+        expect(() =>
+            command('x')
+                .args({ port: a.number() })
+                .args({ host: a.string() })
+        ).toThrow(DefinitionError);
     });
 
     it.each([
-        ['required positional after optional', { a: { type: 'positional' }, b: { type: 'positional', required: true } }],
-        ['positional after rest', { files: { type: 'rest' }, entry: { type: 'positional' } }],
-        ['two rest args', { a: { type: 'rest' }, b: { type: 'rest' } }],
-        ['required with default', { port: { type: 'number', required: true, default: 1 } }],
-        ['enum default outside options', { mode: { type: 'enum', options: ['a'], default: 'b' } }],
-        ['alias collision', { port: { type: 'number', alias: 'p' }, print: { type: 'boolean', alias: 'p' } }],
-        ['kebab/camel alias collision', { a: { type: 'boolean', alias: 'dryRun' }, b: { type: 'boolean', alias: 'dry-run' } }],
-        ['alias with a leading dash', { port: { type: 'number', alias: '-p' } }],
-        ['kebab/camel key collision', { dryRun: { type: 'boolean' }, 'dry-run': { type: 'boolean' } }],
-        ['reserved key _', { _: { type: 'string' } }],
-        ['flag named help', { help: { type: 'boolean' } }],
-        ['h alias (reserved for the builtin -h)', { host: { type: 'string', alias: 'h' } }]
-    ] as const)('rejects %s', (_label, args) => {
-        expect(() => defineCommand({ args: args as never })).toThrow(DefinitionError);
+        ['required positional after optional', { a: a.positional(), b: a.positional().required() }],
+        ['positional after rest', { files: a.rest(), entry: a.positional() }],
+        ['two rest args', { a: a.rest(), b: a.rest() }],
+        ['alias collision', { port: a.number().alias('p'), print: a.boolean().alias('p') }],
+        ['kebab/camel alias collision', { a: a.boolean().alias('dryRun'), b: a.boolean().alias('dry-run') }],
+        ['alias with a leading dash', { port: a.number().alias('-p') }],
+        ['kebab/camel key collision', { dryRun: a.boolean(), 'dry-run': a.boolean() }],
+        ['reserved key _', { _: a.string() }],
+        ['flag named help', { help: a.boolean() }],
+        ['h alias (reserved for the builtin -h)', { host: a.string().alias('h') }]
+    ] as [string, ArgsShape][])('rejects %s', (_label, shape) => {
+        expect(() => command('x').args(shape)).toThrow(DefinitionError);
     });
 
-    it('reserves version only when meta.version is set', () => {
-        expect(() =>
-            defineCommand({ meta: { version: '1.0.0' }, args: { version: { type: 'boolean' } } })
-        ).toThrow(DefinitionError);
-        expect(() => defineCommand({ args: { version: { type: 'boolean' } } })).not.toThrow();
+    it('reserves version only when version() is set, in either order', () => {
+        expect(() => command('x').version('1.0.0').args({ version: a.boolean() })).toThrow(DefinitionError);
+        expect(() => command('x').args({ version: a.boolean() }).version('1.0.0')).toThrow(DefinitionError);
+        expect(() => command('x').args({ version: a.boolean() })).not.toThrow();
     });
 });
 
 describe('resolveCommand', () => {
-    const build = defineCommand({ description: 'build', run() {} });
-    const add = defineCommand({ description: 'add', run() {} });
-    const pkg = defineCommand({ description: 'pkg group', subCommands: { add } });
-    const root = defineCommand({
-        meta: { name: 'sigx' },
-        subCommands: { build, pkg },
-        run() {}
-    });
+    const build = command('build').describe('build').run(() => {});
+    const add = command('add').describe('add').run(() => {});
+    const pkg = command('pkg').describe('pkg group').subcommands({ add });
+    const root = command('sigx')
+        .subcommands({ build, pkg })
+        .run(() => {});
 
     it('resolves nested subcommands and builds the path', () => {
         const resolved = resolveCommand(root, ['pkg', 'add', '--verbose']);
@@ -67,9 +59,9 @@ describe('resolveCommand', () => {
         expect(resolved.rest).toEqual(['--verbose']);
     });
 
-    it('matches meta.aliases', () => {
-        const b = defineCommand({ meta: { aliases: ['b'] }, run() {} });
-        const r = defineCommand({ meta: { name: 'x' }, subCommands: { build: b } });
+    it('matches aliases()', () => {
+        const b = command('build').aliases('b').run(() => {});
+        const r = command('x').subcommands({ build: b });
         expect(resolveCommand(r, ['b']).cmd).toBe(b);
         expect(resolveCommand(r, ['b']).path).toEqual(['x', 'build']);
     });

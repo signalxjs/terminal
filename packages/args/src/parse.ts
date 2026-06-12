@@ -13,8 +13,10 @@
  * - Repeats append for `multiple: true`, otherwise last wins.
  */
 
+import type { ArgsShape, InferArgs } from './arg.js';
+import { toArgsDef } from './arg.js';
 import { DefinitionError, ParseError } from './errors.js';
-import type { ArgDef, ArgsDef, ParsedArgs } from './types.js';
+import type { ArgDef, ArgsDef } from './types.js';
 
 export interface ParseArgsOptions {
     /** Collect unknown flags instead of throwing UNKNOWN_FLAG. Default false. */
@@ -23,9 +25,15 @@ export interface ParseArgsOptions {
     commandPath?: string[];
 }
 
-export interface ParseResult<A extends ArgsDef> {
-    args: ParsedArgs<A>;
+export interface ParseResult<S extends ArgsShape> {
+    args: InferArgs<S>;
     /** [] unless allowUnknownFlags collected something. */
+    unknownFlags: string[];
+}
+
+/** @internal What the untyped core parser returns; the public wrappers refine it. */
+export interface RawParseResult {
+    args: Record<string, unknown> & { _: string[] };
     unknownFlags: string[];
 }
 
@@ -49,8 +57,82 @@ export function aliasesOf(def: ArgDef): string[] {
 }
 
 /**
+ * @internal Eager schema validation: name/alias collisions (including
+ * kebab↔camel spellings), reserved names, positional ordering, and
+ * default/required/enum consistency. Throws `DefinitionError`. Runs inside
+ * `command(...).args()` and the public `parseArgs` — the runtime backstop
+ * behind the builders' compile-time guarantees.
+ */
+export function validateArgs(argsDef: ArgsDef | undefined, reserved: Map<string, string>): void {
+    if (!argsDef) return;
+    const seen = new Map<string, string>();
+    const claim = (name: string, key: string) => {
+        const reservedBy = reserved.get(name);
+        if (reservedBy !== undefined) {
+            throw new DefinitionError(`Arg '${key}' name/alias '${name}' is reserved for the builtin ${reservedBy}`);
+        }
+        const owner = seen.get(name);
+        if (owner !== undefined && owner !== key) {
+            throw new DefinitionError(`Arg '${key}' name/alias '${name}' collides with arg '${owner}'`);
+        }
+        seen.set(name, key);
+    };
+
+    let optionalPositional: string | undefined;
+    let restKey: string | undefined;
+
+    for (const [key, def] of Object.entries(argsDef)) {
+        if (key === '_') {
+            throw new DefinitionError(`Arg key '_' is reserved for post-'--' tokens`);
+        }
+        if ('required' in def && def.required && 'default' in def && def.default !== undefined) {
+            throw new DefinitionError(`Arg '${key}' cannot be both required and have a default`);
+        }
+        if (def.type === 'enum' && def.default !== undefined && !def.options.includes(def.default)) {
+            throw new DefinitionError(
+                `Arg '${key}' default '${def.default}' is not one of its options (${def.options.join('|')})`
+            );
+        }
+        if (def.type === 'positional') {
+            if (restKey !== undefined) {
+                throw new DefinitionError(`Positional '${key}' cannot come after rest arg '${restKey}'`);
+            }
+            if (def.required && optionalPositional !== undefined) {
+                throw new DefinitionError(
+                    `Required positional '${key}' cannot come after optional positional '${optionalPositional}'`
+                );
+            }
+            if (!def.required) optionalPositional = key;
+        } else if (def.type === 'rest') {
+            if (restKey !== undefined) {
+                throw new DefinitionError(`Only one rest arg is allowed ('${restKey}' and '${key}')`);
+            }
+            restKey = key;
+        } else {
+            claim(key, key);
+            claim(camelToKebab(key), key);
+            for (const alias of aliasesOf(def)) {
+                if (alias.startsWith('-')) {
+                    // parseArgs strips leading dashes before resolution, so a
+                    // dashed alias would silently never match.
+                    throw new DefinitionError(
+                        `Arg '${key}' alias '${alias}' must not include the leading dash (use '${alias.replace(/^-+/, '')}')`
+                    );
+                }
+                claim(alias, key);
+                // parseArgs resolves kebab↔camel spellings interchangeably, so
+                // an alias also claims its kebab form ('dryRun' vs 'dry-run'
+                // across two args would be a footgun, not two distinct flags).
+                const kebab = camelToKebab(alias);
+                if (kebab !== alias && !kebab.startsWith('-')) claim(kebab, key);
+            }
+        }
+    }
+}
+
+/**
  * Map every accepted spelling (key, kebab-cased key, aliases) to its canonical
- * key. Collisions are a definition bug — reported by defineCommand, ignored here.
+ * key. Collisions are a definition bug — reported by validateArgs, ignored here.
  */
 function buildNameMap(argsDef: ArgsDef): Map<string, string> {
     const map = new Map<string, string>();
@@ -72,13 +154,23 @@ function looksLikeFlag(token: string): boolean {
 const TRUE_WORDS = new Set(['true', '1', 'yes']);
 const FALSE_WORDS = new Set(['false', '0', 'no']);
 
-export function parseArgs<const A extends ArgsDef>(
+/** Parse argv against a record of `a.*` builders, with full type inference. */
+export function parseArgs<S extends ArgsShape>(
     argv: readonly string[],
-    argsDef: A,
+    shape: S,
     opts: ParseArgsOptions = {}
-): ParseResult<A> {
-    // Guard here too: parseArgs is public and usable without defineCommand's
-    // validation, and `_` is always overwritten with the passthrough tokens.
+): ParseResult<S> {
+    const argsDef = toArgsDef(shape);
+    // Headless use has no builtin --help/--version, so nothing is reserved.
+    validateArgs(argsDef, new Map());
+    const { args, unknownFlags } = parseArgsDef(argv, argsDef, opts);
+    return { args: args as InferArgs<S>, unknownFlags };
+}
+
+/** @internal Core tokenizer/coercion over a plain ArgsDef — assumes a validated schema. */
+export function parseArgsDef(argv: readonly string[], argsDef: ArgsDef, opts: ParseArgsOptions = {}): RawParseResult {
+    // Guard here too, in case a caller bypassed validateArgs: `_` is always
+    // overwritten with the passthrough tokens.
     if ('_' in argsDef) {
         throw new DefinitionError(`Arg key '_' is reserved for post-'--' tokens`);
     }
@@ -326,5 +418,5 @@ export function parseArgs<const A extends ArgsDef>(
     }
 
     values['_'] = passthrough;
-    return { args: values as ParsedArgs<A>, unknownFlags };
+    return { args: values as RawParseResult['args'], unknownFlags };
 }

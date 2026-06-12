@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { buildHelpCatalog, defineCommand, renderHelp } from '../src/index';
+import { a, buildHelpCatalog, command, renderHelp } from '../src/index';
 
-const dev = defineCommand({
-    meta: { name: 'sigx', version: '0.5.1', description: 'Start the dev server' },
-    args: {
-        entry: { type: 'positional', required: true, description: 'Entry file' },
-        files: { type: 'rest', description: 'Additional files' },
-        port: { type: 'number', alias: 'p', required: true, valueHint: 'n', description: 'Port to listen on' },
-        host: { type: 'string', default: 'localhost', description: 'Host name' },
-        mode: { type: 'enum', options: ['dev', 'prod'], description: 'Build mode' },
-        secret: { type: 'string', hidden: true }
-    },
-    subCommands: {
-        build: defineCommand({ meta: { aliases: ['b'], description: 'Build the project' }, run() {} }),
-        internal: defineCommand({ meta: { hidden: true }, run() {} })
-    },
-    run() {}
-});
+const dev = command('sigx')
+    .version('0.5.1')
+    .describe('Start the dev server')
+    .args({
+        entry: a.positional().required().describe('Entry file'),
+        files: a.rest().describe('Additional files'),
+        port: a.number().alias('p').required().valueHint('n').describe('Port to listen on'),
+        host: a.string().default('localhost').describe('Host name'),
+        mode: a.enum(['dev', 'prod']).describe('Build mode'),
+        secret: a.string().hidden()
+    })
+    .subcommands({
+        build: command('build').aliases('b').describe('Build the project').run(() => {}),
+        internal: command('internal').hidden().run(() => {})
+    })
+    .run(() => {});
 
 describe('buildHelpCatalog', () => {
     const catalog = buildHelpCatalog(dev, ['sigx', 'dev']);
@@ -48,8 +48,8 @@ describe('buildHelpCatalog', () => {
         expect(root.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help', 'version']);
         // …but a subcommand catalog does not — runMain only intercepts it at the root.
         expect(catalog.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help']);
-        // No meta.version → no version entry even at the root
-        const plain = buildHelpCatalog(defineCommand({ run() {} }));
+        // No version() → no version entry even at the root
+        const plain = buildHelpCatalog(command('plain').run(() => {}));
         expect(plain.flags.filter((f) => f.builtin).map((f) => f.name)).toEqual(['help']);
     });
 
@@ -84,10 +84,9 @@ describe('renderHelp', () => {
     });
 
     it('lists long aliases alongside the canonical flag name', () => {
-        const cmd = defineCommand({
-            args: { force: { type: 'boolean', alias: ['f', 'hard'] } },
-            run() {}
-        });
+        const cmd = command('x')
+            .args({ force: a.boolean().alias('f', 'hard') })
+            .run(() => {});
         const rendered = renderHelp(buildHelpCatalog(cmd, ['x']));
         expect(rendered).toContain('-f, --force, --hard');
     });
@@ -103,15 +102,11 @@ describe('renderHelp', () => {
     });
 
     it('wraps long descriptions at the given width with hanging indent', () => {
-        const wordy = defineCommand({
-            args: {
-                opt: {
-                    type: 'string',
-                    description: 'a very long description that definitely needs to wrap onto multiple lines'
-                }
-            },
-            run() {}
-        });
+        const wordy = command('x')
+            .args({
+                opt: a.string().describe('a very long description that definitely needs to wrap onto multiple lines')
+            })
+            .run(() => {});
         const narrow = renderHelp(buildHelpCatalog(wordy, ['x']), { width: 40 });
         const optLines = narrow.split('\n').filter((l) => l.includes('wrap') || l.includes('description'));
         expect(optLines.length).toBeGreaterThan(1);
@@ -121,7 +116,7 @@ describe('renderHelp', () => {
     });
 
     it('omits the command line and hint for leaf commands', () => {
-        const leaf = renderHelp(buildHelpCatalog(defineCommand({ run() {} }), ['x', 'leaf']));
+        const leaf = renderHelp(buildHelpCatalog(command('leaf').run(() => {}), ['x', 'leaf']));
         expect(leaf).not.toContain('<command>');
         expect(leaf).not.toContain('COMMANDS');
     });

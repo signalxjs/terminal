@@ -184,8 +184,8 @@ function main() {
     writeFileSync(
         join(appDir, 'src', 'args-check.ts'),
         [
-            "import { defineCommand, runMain, parseArgs, buildHelpCatalog, renderHelp, ParseError } from '@sigx/args';",
-            'export type _Args = [typeof defineCommand, typeof runMain, typeof parseArgs, typeof buildHelpCatalog, typeof renderHelp, typeof ParseError];',
+            "import { a, command, runMain, parseArgs, buildHelpCatalog, renderHelp, ParseError } from '@sigx/args';",
+            'export type _Args = [typeof a, typeof command, typeof runMain, typeof parseArgs, typeof buildHelpCatalog, typeof renderHelp, typeof ParseError];',
             '',
         ].join('\n')
     );

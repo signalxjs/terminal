@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DefinitionError, ParseError, parseArgs } from '../src/index';
+import { a, DefinitionError, ParseError, parseArgs } from '../src/index';
 
 function parseError(fn: () => unknown): ParseError {
     try {
@@ -13,126 +13,132 @@ function parseError(fn: () => unknown): ParseError {
 
 describe('flag forms', () => {
     it('parses --flag value and --flag=value', () => {
-        const def = { port: { type: 'number' }, host: { type: 'string' } } as const;
-        expect(parseArgs(['--port', '3000'], def).args.port).toBe(3000);
-        expect(parseArgs(['--port=3000'], def).args.port).toBe(3000);
-        expect(parseArgs(['--host=a=b'], def).args.host).toBe('a=b');
+        const shape = { port: a.number(), host: a.string() };
+        expect(parseArgs(['--port', '3000'], shape).args.port).toBe(3000);
+        expect(parseArgs(['--port=3000'], shape).args.port).toBe(3000);
+        expect(parseArgs(['--host=a=b'], shape).args.host).toBe('a=b');
     });
 
     it('parses short flags with value or =', () => {
-        const def = { port: { type: 'number', alias: 'p' } } as const;
-        expect(parseArgs(['-p', '8080'], def).args.port).toBe(8080);
-        expect(parseArgs(['-p=8080'], def).args.port).toBe(8080);
+        const shape = { port: a.number().alias('p') };
+        expect(parseArgs(['-p', '8080'], shape).args.port).toBe(8080);
+        expect(parseArgs(['-p=8080'], shape).args.port).toBe(8080);
     });
 
     it('expands boolean short clusters', () => {
-        const def = {
-            all: { type: 'boolean', alias: 'a' },
-            brief: { type: 'boolean', alias: 'b' },
-            count: { type: 'number', alias: 'c' }
-        } as const;
-        const { args } = parseArgs(['-ab'], def);
+        const shape = {
+            all: a.boolean().alias('a'),
+            brief: a.boolean().alias('b'),
+            count: a.number().alias('c')
+        };
+        const { args } = parseArgs(['-ab'], shape);
         expect(args.all).toBe(true);
         expect(args.brief).toBe(true);
 
-        const err = parseError(() => parseArgs(['-ac'], def));
+        const err = parseError(() => parseArgs(['-ac'], shape));
         expect(err.code).toBe('UNKNOWN_FLAG');
         expect(err.message).toContain('boolean');
     });
 
     it('normalizes kebab and camel spellings both ways', () => {
-        expect(parseArgs(['--dry-run'], { dryRun: { type: 'boolean' } }).args.dryRun).toBe(true);
-        expect(parseArgs(['--dryRun'], { dryRun: { type: 'boolean' } }).args.dryRun).toBe(true);
-        expect(parseArgs(['--dryRun'], { 'dry-run': { type: 'boolean' } }).args['dry-run']).toBe(true);
+        expect(parseArgs(['--dry-run'], { dryRun: a.boolean() }).args.dryRun).toBe(true);
+        expect(parseArgs(['--dryRun'], { dryRun: a.boolean() }).args.dryRun).toBe(true);
+        expect(parseArgs(['--dryRun'], { 'dry-run': a.boolean() }).args['dry-run']).toBe(true);
     });
 
     it('resolves long aliases', () => {
-        const def = { force: { type: 'boolean', alias: ['hard'] } } as const;
-        expect(parseArgs(['--hard'], def).args.force).toBe(true);
+        const shape = { force: a.boolean().alias('hard') };
+        expect(parseArgs(['--hard'], shape).args.force).toBe(true);
     });
 });
 
 describe('booleans', () => {
     it('never consumes the next token', () => {
-        const def = { open: { type: 'boolean' }, entry: { type: 'positional' } } as const;
-        const { args } = parseArgs(['--open', 'main.ts'], def);
+        const shape = { open: a.boolean(), entry: a.positional() };
+        const { args } = parseArgs(['--open', 'main.ts'], shape);
         expect(args.open).toBe(true);
         expect(args.entry).toBe('main.ts');
     });
 
     it('accepts explicit =true/false/1/0/yes/no', () => {
-        const def = { open: { type: 'boolean' } } as const;
-        expect(parseArgs(['--open=false'], def).args.open).toBe(false);
-        expect(parseArgs(['--open=YES'], def).args.open).toBe(true);
-        expect(parseArgs(['--open=0'], def).args.open).toBe(false);
-        const err = parseError(() => parseArgs(['--open=maybe'], def));
+        const shape = { open: a.boolean() };
+        expect(parseArgs(['--open=false'], shape).args.open).toBe(false);
+        expect(parseArgs(['--open=YES'], shape).args.open).toBe(true);
+        expect(parseArgs(['--open=0'], shape).args.open).toBe(false);
+        const err = parseError(() => parseArgs(['--open=maybe'], shape));
         expect(err.code).toBe('INVALID_BOOLEAN');
         expect(err.detail).toMatchObject({ arg: 'open', received: 'maybe' });
     });
 
-    it('negates with --no-x unless negatable: false', () => {
-        expect(parseArgs(['--no-color'], { color: { type: 'boolean', default: true } }).args.color).toBe(false);
-        const err = parseError(() => parseArgs(['--no-color'], { color: { type: 'boolean', negatable: false } }));
+    it('negates with --no-x unless negatable(false)', () => {
+        expect(parseArgs(['--no-color'], { color: a.boolean().default(true) }).args.color).toBe(false);
+        const err = parseError(() => parseArgs(['--no-color'], { color: a.boolean().negatable(false) }));
         expect(err.code).toBe('UNKNOWN_FLAG');
     });
 
     it('prefers a literal no- key over negation', () => {
-        const { args } = parseArgs(['--no-cache'], { noCache: { type: 'boolean' } });
+        const { args } = parseArgs(['--no-cache'], { noCache: a.boolean() });
         expect(args.noCache).toBe(true);
     });
 });
 
 describe('values and coercion', () => {
     it('does not consume a flag-looking token as a value', () => {
-        const def = { port: { type: 'number' }, open: { type: 'boolean' } } as const;
-        const err = parseError(() => parseArgs(['--port', '--open'], def));
+        const shape = { port: a.number(), open: a.boolean() };
+        const err = parseError(() => parseArgs(['--port', '--open'], shape));
         expect(err.code).toBe('MISSING_VALUE');
         expect(err.detail.arg).toBe('port');
     });
 
     it('treats negative numbers as values, not flags', () => {
-        const def = { offset: { type: 'number' }, rest: { type: 'rest' } } as const;
-        expect(parseArgs(['--offset', '-2'], def).args.offset).toBe(-2);
-        expect(parseArgs(['--offset', '-.5'], def).args.offset).toBe(-0.5);
-        expect(parseArgs(['-1.5', '-.5'], def).args.rest).toEqual(['-1.5', '-.5']);
+        const shape = { offset: a.number(), rest: a.rest() };
+        expect(parseArgs(['--offset', '-2'], shape).args.offset).toBe(-2);
+        expect(parseArgs(['--offset', '-.5'], shape).args.offset).toBe(-0.5);
+        expect(parseArgs(['-1.5', '-.5'], shape).args.rest).toEqual(['-1.5', '-.5']);
     });
 
     it('rejects non-finite numbers', () => {
-        const err = parseError(() => parseArgs(['--port', 'abc'], { port: { type: 'number' } }));
+        const err = parseError(() => parseArgs(['--port', 'abc'], { port: a.number() }));
         expect(err.code).toBe('INVALID_NUMBER');
         expect(err.detail).toMatchObject({ arg: 'port', received: 'abc', expected: 'number' });
     });
 
     it('enforces enum options exactly', () => {
-        const def = { mode: { type: 'enum', options: ['dev', 'prod'] } } as const;
-        expect(parseArgs(['--mode', 'dev'], def).args.mode).toBe('dev');
-        const err = parseError(() => parseArgs(['--mode', 'Dev'], def));
+        const shape = { mode: a.enum(['dev', 'prod']) };
+        expect(parseArgs(['--mode', 'dev'], shape).args.mode).toBe('dev');
+        const err = parseError(() => parseArgs(['--mode', 'Dev'], shape));
         expect(err.code).toBe('INVALID_ENUM');
         expect(err.detail.expected).toBe('dev|prod');
     });
 });
 
 describe('repeats', () => {
-    it('appends for multiple: true and defaults to []', () => {
-        const def = { tag: { type: 'string', multiple: true } } as const;
-        expect(parseArgs(['--tag', 'a', '--tag=b'], def).args.tag).toEqual(['a', 'b']);
-        expect(parseArgs([], def).args.tag).toEqual([]);
+    it('appends for multiple() and defaults to []', () => {
+        const shape = { tag: a.string().multiple() };
+        expect(parseArgs(['--tag', 'a', '--tag=b'], shape).args.tag).toEqual(['a', 'b']);
+        expect(parseArgs([], shape).args.tag).toEqual([]);
     });
 
-    it('last wins without multiple', () => {
-        expect(parseArgs(['--port', '1', '--port', '2'], { port: { type: 'number' } }).args.port).toBe(2);
+    it('seeds a defaulted multiple flag with [default] when absent', () => {
+        const shape = { tag: a.string().default('base').multiple() };
+        expect(parseArgs([], shape).args.tag).toEqual(['base']);
+        expect(parseArgs(['--tag', 'x'], shape).args.tag).toEqual(['x']);
+    });
+
+    it('last wins without multiple()', () => {
+        expect(parseArgs(['--port', '1', '--port', '2'], { port: a.number() }).args.port).toBe(2);
     });
 });
 
 describe('positionals, rest, and --', () => {
     it('fills positionals in declaration order, rest collects the tail', () => {
-        const def = {
-            entry: { type: 'positional' },
-            out: { type: 'positional' },
-            files: { type: 'rest' },
-            verbose: { type: 'boolean' }
-        } as const;
-        const { args } = parseArgs(['a.ts', '--verbose', 'b.ts', 'c.ts', 'd.ts'], def);
+        const shape = {
+            entry: a.positional(),
+            out: a.positional(),
+            files: a.rest(),
+            verbose: a.boolean()
+        };
+        const { args } = parseArgs(['a.ts', '--verbose', 'b.ts', 'c.ts', 'd.ts'], shape);
         expect(args.entry).toBe('a.ts');
         expect(args.out).toBe('b.ts');
         expect(args.files).toEqual(['c.ts', 'd.ts']);
@@ -140,18 +146,24 @@ describe('positionals, rest, and --', () => {
     });
 
     it('rejects extra positionals without a rest arg', () => {
-        const err = parseError(() => parseArgs(['a', 'b'], { entry: { type: 'positional' } }));
+        const err = parseError(() => parseArgs(['a', 'b'], { entry: a.positional() }));
         expect(err.code).toBe('UNEXPECTED_POSITIONAL');
         expect(err.detail.received).toBe('b');
     });
 
-    it('rejects a schema key named _ even without defineCommand', () => {
-        expect(() => parseArgs([], { _: { type: 'string' } } as never)).toThrow(DefinitionError);
+    it('validates the shape eagerly — a key named _ throws DefinitionError', () => {
+        expect(() => parseArgs([], { _: a.string() })).toThrow(DefinitionError);
+    });
+
+    it('validates collisions eagerly even without a command', () => {
+        expect(() => parseArgs([], { port: a.number().alias('p'), print: a.boolean().alias('p') })).toThrow(
+            DefinitionError
+        );
     });
 
     it('passes everything after -- through to _, untouched', () => {
-        const def = { entry: { type: 'positional' }, port: { type: 'number' } } as const;
-        const { args } = parseArgs(['main.ts', '--', '--port', '9'], def);
+        const shape = { entry: a.positional(), port: a.number() };
+        const { args } = parseArgs(['main.ts', '--', '--port', '9'], shape);
         expect(args.entry).toBe('main.ts');
         expect(args.port).toBeUndefined();
         expect(args._).toEqual(['--port', '9']);
@@ -160,16 +172,16 @@ describe('positionals, rest, and --', () => {
 
 describe('defaults and required', () => {
     it('applies defaults after parsing', () => {
-        const def = { host: { type: 'string', default: 'localhost' } } as const;
-        expect(parseArgs([], def).args.host).toBe('localhost');
-        expect(parseArgs(['--host', 'x'], def).args.host).toBe('x');
+        const shape = { host: a.string().default('localhost') };
+        expect(parseArgs([], shape).args.host).toBe('localhost');
+        expect(parseArgs(['--host', 'x'], shape).args.host).toBe('x');
     });
 
     it('materializes absent optionals as own undefined properties', () => {
         const { args } = parseArgs([], {
-            verbose: { type: 'boolean' },
-            entry: { type: 'positional' },
-            mode: { type: 'enum', options: ['a', 'b'] }
+            verbose: a.boolean(),
+            entry: a.positional(),
+            mode: a.enum(['a', 'b'])
         });
         expect('verbose' in args).toBe(true);
         expect(Object.keys(args).sort()).toEqual(['_', 'entry', 'mode', 'verbose']);
@@ -177,17 +189,17 @@ describe('defaults and required', () => {
     });
 
     it('throws MISSING_REQUIRED for absent flags and positionals', () => {
-        const flagErr = parseError(() => parseArgs([], { port: { type: 'number', required: true } }));
+        const flagErr = parseError(() => parseArgs([], { port: a.number().required() }));
         expect(flagErr.code).toBe('MISSING_REQUIRED');
         expect(flagErr.message).toContain('--port');
 
-        const posErr = parseError(() => parseArgs([], { entry: { type: 'positional', required: true } }));
+        const posErr = parseError(() => parseArgs([], { entry: a.positional().required() }));
         expect(posErr.code).toBe('MISSING_REQUIRED');
         expect(posErr.message).toContain('<entry>');
     });
 
     it('requires at least one value for required multiple flags', () => {
-        const err = parseError(() => parseArgs([], { tag: { type: 'string', multiple: true, required: true } }));
+        const err = parseError(() => parseArgs([], { tag: a.string().multiple().required() }));
         expect(err.code).toBe('MISSING_REQUIRED');
     });
 });
@@ -200,9 +212,11 @@ describe('unknown flags', () => {
     });
 
     it('collects them with allowUnknownFlags', () => {
-        const { args, unknownFlags } = parseArgs(['pos', '--bogus=1', '-z', '--verbose'], { entry: { type: 'positional' } }, {
-            allowUnknownFlags: true
-        });
+        const { args, unknownFlags } = parseArgs(
+            ['pos', '--bogus=1', '-z', '--verbose'],
+            { entry: a.positional() },
+            { allowUnknownFlags: true }
+        );
         expect(unknownFlags).toEqual(['--bogus=1', '-z', '--verbose']);
         expect(args.entry).toBe('pos');
     });
@@ -210,7 +224,7 @@ describe('unknown flags', () => {
     it('consumes an unknown flag value so positional binding does not shift', () => {
         const { args, unknownFlags } = parseArgs(
             ['--foo', 'bar', 'pos'],
-            { entry: { type: 'positional' } },
+            { entry: a.positional() },
             { allowUnknownFlags: true }
         );
         expect(unknownFlags).toEqual(['--foo', 'bar']);
@@ -220,7 +234,7 @@ describe('unknown flags', () => {
     it('does not consume past an unknown --flag=value or a flag-looking token', () => {
         const { args, unknownFlags } = parseArgs(
             ['--foo=1', 'pos', '--bar', '--baz'],
-            { entry: { type: 'positional' } },
+            { entry: a.positional() },
             { allowUnknownFlags: true }
         );
         expect(unknownFlags).toEqual(['--foo=1', '--bar', '--baz']);

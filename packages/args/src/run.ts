@@ -5,12 +5,12 @@
  * hosts that render errors themselves (e.g. a TUI shell) and for tests.
  */
 
-import { resolveCommand } from './command.js';
+import type { AnyCommand, CommandContext } from './command.js';
+import { defOf, resolveCommand } from './command.js';
 import { ParseError } from './errors.js';
 import { buildHelpCatalog } from './help.js';
-import { parseArgs } from './parse.js';
+import { parseArgsDef } from './parse.js';
 import { renderHelp } from './render.js';
-import type { AnyCommand, ArgsDef, CommandContext } from './types.js';
 
 export interface RunMainOptions {
     /** Defaults to process.argv.slice(2). */
@@ -51,8 +51,9 @@ interface ResolvedRun {
 }
 
 function buildContext(root: AnyCommand, resolved: ResolvedRun): CommandContext {
-    const { args, unknownFlags } = parseArgs<ArgsDef>(resolved.rest, resolved.cmd.args ?? {}, {
-        ...(resolved.cmd.allowUnknownFlags !== undefined ? { allowUnknownFlags: resolved.cmd.allowUnknownFlags } : {}),
+    const state = defOf(resolved.cmd);
+    const { args, unknownFlags } = parseArgsDef(resolved.rest, state.args ?? {}, {
+        ...(state.allowUnknownFlags !== undefined ? { allowUnknownFlags: state.allowUnknownFlags } : {}),
         commandPath: resolved.path
     });
     return {
@@ -79,7 +80,8 @@ export async function runCommand(
 ): Promise<CommandContext> {
     const resolved = resolveCommand(cmd, opts.rawArgs);
     const ctx = buildContext(cmd, resolved);
-    if (resolved.cmd.run) await resolved.cmd.run(ctx);
+    const run = defOf(resolved.cmd).run;
+    if (run) await run(ctx);
     return ctx;
 }
 
@@ -88,8 +90,9 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     const stdout = opts.stdout ?? ((text: string) => console.log(text));
     const stderr = opts.stderr ?? ((text: string) => console.error(text));
 
-    if (cmd.meta.version !== undefined && wantsRootVersion(rawArgs)) {
-        stdout(cmd.meta.version);
+    const rootMeta = defOf(cmd).meta;
+    if (rootMeta.version !== undefined && wantsRootVersion(rawArgs)) {
+        stdout(rootMeta.version);
         setExitCode(0);
         return;
     }
@@ -100,7 +103,7 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     } catch (error) {
         if (error instanceof ParseError) {
             stderr(`error: ${error.message}`);
-            stderr(`Run '${(error.detail.command ?? [cmd.meta.name ?? 'cli']).join(' ')} --help' for usage.`);
+            stderr(`Run '${(error.detail.command ?? [rootMeta.name ?? 'cli']).join(' ')} --help' for usage.`);
             setExitCode(1);
             return;
         }
@@ -113,7 +116,8 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     const wantsHelp = pre.some(
         (t) => t === '--help' || t === '-h' || t.startsWith('--help=') || t.startsWith('-h=')
     );
-    if (wantsHelp || !resolved.cmd.run) {
+    const runHandler = defOf(resolved.cmd).run;
+    if (wantsHelp || !runHandler) {
         stdout(renderHelp(buildHelpCatalog(resolved.cmd, resolved.path)));
         setExitCode(wantsHelp ? 0 : 1);
         return;
@@ -133,7 +137,7 @@ export async function runMain(cmd: AnyCommand, opts: RunMainOptions = {}): Promi
     }
 
     try {
-        await resolved.cmd.run(ctx);
+        await runHandler(ctx);
         // Default to success, but respect an exit code the handler set itself
         // (e.g. process.exitCode = 2 for a soft failure).
         if (typeof process !== 'undefined' && process.exitCode === undefined) {
