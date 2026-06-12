@@ -6,7 +6,7 @@
  * guard then blocks every publish.
  */
 import { describe, it, expect } from 'vitest';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,7 +23,7 @@ describe('declared bins are committed executable', () => {
 
     for (const bin of bins) {
         it(`${bin} has git mode 100755`, () => {
-            const staged = execSync(`git ls-files --stage -- ${JSON.stringify(bin)}`, {
+            const staged = execFileSync('git', ['ls-files', '--stage', '--', bin], {
                 cwd: pkgDir,
                 encoding: 'utf8',
             }).trim();
