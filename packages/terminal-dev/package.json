@@ -53,10 +53,10 @@
         "@sigx/runtime-core": ">=0.6.0 <0.7.0"
     },
     "devDependencies": {
-        "@sigx/reactivity": "^0.6.0",
-        "@sigx/runtime-core": "^0.6.0",
+        "@sigx/reactivity": "^0.6.3",
+        "@sigx/runtime-core": "^0.6.3",
         "@sigx/runtime-terminal": "workspace:^",
-        "@sigx/vite": "^0.4.7",
+        "@sigx/vite": "^0.6.3",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3"
     },
