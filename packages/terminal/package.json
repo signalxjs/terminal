@@ -48,17 +48,13 @@
         "url": "https://github.com/signalxjs/terminal/issues"
     },
     "dependencies": {
+        "@sigx/reactivity": ">=0.6.0 <0.7.0",
+        "@sigx/runtime-core": ">=0.6.0 <0.7.0",
         "@sigx/runtime-terminal": "workspace:^",
         "@sigx/terminal-zero": "workspace:^",
         "@sigx/terminal-ui": "workspace:^"
     },
-    "peerDependencies": {
-        "@sigx/reactivity": ">=0.6.0 <0.7.0",
-        "@sigx/runtime-core": ">=0.6.0 <0.7.0"
-    },
     "devDependencies": {
-        "@sigx/reactivity": "^0.6.0",
-        "@sigx/runtime-core": "^0.6.0",
         "@sigx/vite": "^0.4.7",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3",
