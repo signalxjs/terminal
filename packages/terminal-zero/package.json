@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal-zero",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "description": "Headless, design-system-neutral foundation for SignalX terminal UIs — token contract, theme engine, and layout primitives",
     "type": "module",
     "main": "./dist/index.js",
