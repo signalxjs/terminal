@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-06-17
+
 ### Changed
 
 - **`@sigx/terminal` and `@sigx/runtime-terminal` now declare SignalX core as `dependencies`, not `peerDependencies`** (#72): `@sigx/reactivity` and `@sigx/runtime-core` moved back from `peerDependencies` to `dependencies` (`>=0.6.0 <0.7.0`) in the terminal umbrella (`@sigx/terminal`) and its renderer (`@sigx/runtime-terminal`). This makes `npm install @sigx/terminal` bring the reactive engine on its own — consistent with the `sigx` (web) and `@sigx/lynx` (native) umbrellas and the `@sigx/runtime-lynx` renderer, and no longer requiring the explicit `npm install @sigx/terminal @sigx/reactivity @sigx/runtime-core` that older docs spelled out. The single-shared-engine guarantee is preserved: a terminal app installs exactly one umbrella, which owns one copy of core. The satellite component libraries `@sigx/terminal-zero` and `@sigx/terminal-ui` keep core as `peerDependencies` — they must agree on the core the app's umbrella provides (the case `peerDependencies` actually exists for, see #64).
