@@ -3,7 +3,7 @@
     "compilerOptions": {
         "noEmit": true,
         "jsx": "react-jsx",
-        "jsxImportSource": "@sigx/runtime-core",
+        "jsxImportSource": "@sigx/terminal",
         "paths": {}
     },
     "include": ["src"]

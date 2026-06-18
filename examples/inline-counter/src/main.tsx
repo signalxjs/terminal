@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // Inline mode demo. Run directly in a terminal:
 //
 //     node --import tsx src/main.tsx

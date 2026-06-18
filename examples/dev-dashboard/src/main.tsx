@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // Persistent dev-server TUI — the shape of the future `sigx dev` for lynx:
 // a fullscreen tabbed app with the connect QR always one tab away, live
 // device logs you can scroll while they stream, and single-key actions.

@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { defineApp, terminalMount } from '@sigx/terminal';
 import { App } from './App';
 

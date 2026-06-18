@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { Gradient, Shimmer, Banner, Spinner, ProgressBar, SPINNERS, type SpinnerVariant } from '@sigx/terminal';
 

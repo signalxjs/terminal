@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { component, signal, Text, Spacer, Col } from '@sigx/terminal';
 import { Input, Checkbox, Select, Radio, MultiSelect, Confirm } from '@sigx/terminal';
 

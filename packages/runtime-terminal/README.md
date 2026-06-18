@@ -11,8 +11,10 @@ Full guides, API reference and live examples → **<https://sigx.dev/terminal/>*
 
 ## Quick taste
 
+With `"jsxImportSource": "@sigx/terminal"` set in your `tsconfig.json`, write
+plain TSX — no per-file pragma:
+
 ```tsx
-/** @jsxImportSource @sigx/terminal */
 import { signal, renderTerminal, Checkbox } from '@sigx/terminal';
 
 const state = signal({ enabled: true });

@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // Simulated sigx-lynx build: the modern build-CLI look, end to end.
 //
 //     node --import tsx src/main.tsx          # live TaskList + streaming log tail

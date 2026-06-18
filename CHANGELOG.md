@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **Terminal apps no longer need a per-file `/** @jsxImportSource @sigx/terminal */` pragma** (#78): `terminalDevPlugin()` (`@sigx/terminal-dev`) now configures the oxc JSX transform itself (`runtime: 'automatic'`, `importSource: '@sigx/terminal'`) for both `serve` and `build`, so `.tsx` run through the dev runner compile against the terminal runtime with zero per-file boilerplate — matching how `sigx` (web) configures it in Vite and `@sigx/lynx` (native) does in its plugin. A file that still carries its own pragma keeps working (oxc honors the pragma over the config). For editors and `tsc`, set `"jsxImportSource": "@sigx/terminal"` in `tsconfig.json`; the repo examples now do exactly this (and carry no pragma). The internal package sources (`@sigx/terminal-zero`, `@sigx/terminal-ui`) keep their `@sigx/runtime-core` pragma until `@sigx/vite`'s library builder exposes a configurable import source.
+
 ## [0.6.2] - 2026-06-17
 
 ### Changed

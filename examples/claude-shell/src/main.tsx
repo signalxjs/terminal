@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // An assistant shell in the Claude Code shape — the full interactive kit:
 //
 //     node --import tsx src/main.tsx     (needs a real terminal)

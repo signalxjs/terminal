@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { component, signal, Text, Spacer, Col } from '@sigx/terminal';
 import { Tabs, StatusBar, KeyHints } from '@sigx/terminal';
 
