@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { component, Text, Spacer, Col } from '@sigx/terminal';
 import { Table } from '@sigx/terminal';
 

@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
 import { TaskList, createLogStore, type TaskItem } from '@sigx/terminal';
 

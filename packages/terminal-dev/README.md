@@ -18,7 +18,6 @@ sigx-terminal-dev --config vite.config.ts   # layer a vite config on top
 Point it at the module that mounts your app:
 
 ```tsx
-/** @jsxImportSource @sigx/runtime-core */
 // src/main.tsx — the "mount module"
 import { defineApp, terminalMount } from '@sigx/terminal';
 import { App } from './App';
@@ -31,7 +30,7 @@ defineApp(<App />).mount({ fullscreen: true }, terminalMount);
 - **Break the build**: the error is reported (above the live region while mounted); the next successful save recovers automatically.
 - **Quit with Ctrl+C**: the dev process exits 0 — quitting the app is the normal end of a dev session, so wrappers like pnpm scripts don't report a failure. (Raw mode delivers Ctrl+C to the app as a key; the app's conventional exit 130 is translated by the bin. Other exit codes pass through.)
 
-Your app's `tsconfig.json` needs the usual SignalX JSX setup (`"jsx": "react-jsx"`, `"jsxImportSource": "@sigx/runtime-core"` — or the `@sigx/terminal` facade).
+No per-file `/** @jsxImportSource … */` pragma is needed: the dev runner configures the JSX transform for your `.tsx` (importSource `@sigx/terminal`), the same way core's Vite config and lynx's plugin do. Still set the matching JSX options in your app's `tsconfig.json` (`"jsx": "react-jsx"`, `"jsxImportSource": "@sigx/terminal"`) so `tsc` and your editor typecheck against the same runtime.
 
 ## Programmatic API
 

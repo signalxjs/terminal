@@ -20,7 +20,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Plugin } from 'vite';
+import type { Plugin, UserConfig } from 'vite';
 
 export interface TerminalDevPluginOptions {
     /**
@@ -98,7 +98,21 @@ export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugi
 
         config(_userConfig, env) {
             command = env.command;
-            if (env.command !== 'serve') return;
+            // Configure the JSX transform for the app's own `.tsx` so users
+            // never need a per-file `/** @jsxImportSource @sigx/terminal */`
+            // pragma — the framework's dev plugin owns this, the same way
+            // core's vite config and lynx's plugin do. `@sigx/terminal` is an
+            // SSR external (a singleton, below) and its `./jsx-runtime` entry
+            // re-exports `jsx`/`jsxs`/`Fragment`/`jsxDEV`, so the automatic
+            // runtime resolves to the externalized singleton. A file that
+            // carries its own pragma still wins — oxc honors the pragma over
+            // this config — so existing pragma'd code is unaffected. Returned
+            // for `build` as well as `serve` so production app builds are
+            // pragma-free too.
+            const jsxConfig: UserConfig = {
+                oxc: { jsx: { runtime: 'automatic', importSource: '@sigx/terminal' } },
+            };
+            if (env.command !== 'serve') return jsxConfig;
             // The HMR runtime usually lives outside the app root (next to
             // this plugin). The module runner's fetches don't go through the
             // HTTP fs allowlist, but a browser environment served from the
@@ -106,6 +120,7 @@ export function terminalDevPlugin(options: TerminalDevPluginOptions = {}): Plugi
             // rather than disabling strict mode.
             const isAbsoluteRuntime = path.isAbsolute(hmrRuntime) || /^[A-Za-z]:[\\/]/.test(hmrRuntime);
             return {
+                ...jsxConfig,
                 ssr: {
                     external: [...SIGX_EXTERNALS, ...(options.external ?? [])],
                 },

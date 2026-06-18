@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // The imperative prompt kit, end to end — a `sigx create`-style wizard:
 //
 //     node --import tsx src/main.tsx          # interactive: type, arrow, space, enter

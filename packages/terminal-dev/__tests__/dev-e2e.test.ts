@@ -19,10 +19,14 @@ import { startDev, type DevHandle } from '../src/dev';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
+// Deliberately omits `jsxImportSource` so these fixtures isolate the dev
+// plugin's own JSX-transform injection: with no pragma AND no tsconfig hint,
+// the only thing pointing oxc at the terminal runtime is the plugin. (A real
+// app still sets `jsxImportSource` in tsconfig for `tsc`/IDE — the plugin
+// overrides it for the actual emit either way.)
 const TSCONFIG = JSON.stringify({
     compilerOptions: {
         jsx: 'react-jsx',
-        jsxImportSource: '@sigx/runtime-core',
         module: 'ESNext',
         moduleResolution: 'bundler',
         strict: true,
@@ -37,7 +41,6 @@ export const store = signal({ n: 0, tab: 'a' });
 // A navigation parent in its own module: holds the Label import binding and
 // mounts/unmounts it as the store's tab flips.
 const APP_TSX = `
-/** @jsxImportSource @sigx/runtime-core */
 import { component } from '@sigx/runtime-core';
 import { store } from './store';
 import { Label } from './ui';
@@ -48,7 +51,6 @@ export const App = component(() => () => (
 `;
 
 const mainWithApp = (outFile: string) => `
-/** @jsxImportSource @sigx/runtime-core */
 import { appendFileSync } from 'node:fs';
 import { renderTerminal, setOutputTarget, syncTerminalSize } from '@sigx/runtime-terminal';
 import { App } from './app';
@@ -65,7 +67,6 @@ renderTerminal(<App />, { patchConsole: false });
 `;
 
 const ui = (version: string) => `
-/** @jsxImportSource @sigx/runtime-core */
 import { component } from '@sigx/runtime-core';
 import { store } from './store';
 
@@ -76,7 +77,6 @@ export const Label = component(() => () => (
 `;
 
 const main = (marker: string, outFile: string) => `
-/** @jsxImportSource @sigx/runtime-core */
 import { appendFileSync } from 'node:fs';
 import { renderTerminal, setOutputTarget, syncTerminalSize } from '@sigx/runtime-terminal';
 import { Label } from './ui';
@@ -142,6 +142,16 @@ describe('dev runner e2e', () => {
         // real fs event.
         handle!.server.watcher.emit('change', file);
     }
+
+    it('renders app code that has no per-file JSX pragma', async () => {
+        // None of the fixtures carry `/** @jsxImportSource ... */`; the dev
+        // plugin configures the oxc transform (importSource '@sigx/terminal'),
+        // so JSX compiles against the terminal runtime with zero per-file
+        // boilerplate — the same DX as core and lynx apps.
+        await boot();
+        await until(() => output().includes('app version one'), 'first frame without a pragma');
+        expect(errors).toEqual([]);
+    }, 30_000);
 
     it('hot-swaps an edited component into the running app, state intact', async () => {
         await boot();

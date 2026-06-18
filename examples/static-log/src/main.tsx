@@ -1,4 +1,3 @@
-/** @jsxImportSource @sigx/runtime-core */
 // Static output demo — the CLI-command side of the framework. Run directly:
 //
 //     node --import tsx src/main.tsx

@@ -19,8 +19,10 @@ explicitly works everywhere.
 
 ## Quick taste
 
+Set `"jsxImportSource": "@sigx/terminal"` once in your `tsconfig.json` — then
+write plain TSX, with no per-file pragma:
+
 ```tsx
-/** @jsxImportSource @sigx/terminal */
 import { component, signal, defineApp, Input, Button } from '@sigx/terminal';
 
 const App = component(() => {
