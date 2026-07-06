@@ -55,7 +55,7 @@
         "@sigx/terminal-ui": "workspace:^"
     },
     "devDependencies": {
-        "@sigx/vite": "^0.4.7",
+        "@sigx/vite": "^0.7.0",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3",
         "vite": "^8.0.3"
