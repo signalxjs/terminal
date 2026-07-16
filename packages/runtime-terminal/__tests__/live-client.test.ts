@@ -4,15 +4,19 @@
  * keeps server renders safe but reads as `false` in a TUI, leaving keyed
  * `useData` reads parked in `pending` forever.
  */
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { isLiveClient } from '@sigx/runtime-core/internals';
 import { component, jsx, useData } from '@sigx/runtime-core';
 import { renderTerminal, setOutputTarget } from '../src';
 import { captureOutput } from './harness';
 
 describe('live-client declaration', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
     afterEach(() => {
         setOutputTarget(undefined);
+        vi.useRealTimers();
     });
 
     it('declares the terminal runtime a live client despite having no window', () => {
@@ -34,8 +38,9 @@ describe('live-client declaration', () => {
         });
 
         const handle = renderTerminal(jsx(App, {}), { patchConsole: false });
-        // Let the fetcher settle and the resulting re-render flush.
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        // Async advance: settles the fetcher's promise (microtasks) as well as
+        // the renderer's 16ms batch timer, without depending on wall-clock.
+        await vi.advanceTimersByTimeAsync(20);
         // Non-TTY writes the final frame once, at unmount.
         handle.unmount();
 
