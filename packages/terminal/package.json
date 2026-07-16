@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal",
-    "version": "0.6.2",
+    "version": "0.7.0",
     "description": "SignalX Terminal - TUI framework with TSX support",
     "type": "module",
     "main": "./dist/index.js",
@@ -48,14 +48,14 @@
         "url": "https://github.com/signalxjs/terminal/issues"
     },
     "dependencies": {
-        "@sigx/reactivity": ">=0.6.0 <0.7.0",
-        "@sigx/runtime-core": ">=0.6.0 <0.7.0",
+        "@sigx/reactivity": ">=0.10.0 <0.11.0",
+        "@sigx/runtime-core": ">=0.10.0 <0.11.0",
         "@sigx/runtime-terminal": "workspace:^",
         "@sigx/terminal-zero": "workspace:^",
         "@sigx/terminal-ui": "workspace:^"
     },
     "devDependencies": {
-        "@sigx/vite": "^0.4.7",
+        "@sigx/vite": "^0.10.0",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3",
         "vite": "^8.0.3"

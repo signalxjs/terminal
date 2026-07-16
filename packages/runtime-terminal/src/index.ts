@@ -1,4 +1,4 @@
-import { createRenderer, RendererOptions, setDefaultMount } from '@sigx/runtime-core/internals';
+import { createRenderer, RendererOptions, setDefaultMount, declareLiveClient } from '@sigx/runtime-core/internals';
 import { signal } from '@sigx/reactivity';
 import { focusNext, focusPrev } from './focus';
 import { displayWidth, truncateToWidth } from './utils';
@@ -993,6 +993,12 @@ export const terminalMount = (component: any, options: RenderTerminalOptions, ap
 
 // Set terminalMount as the default mount function for this platform
 setDefaultMount(terminalMount);
+
+// Without a declaration, core infers "live client" from `window`, which a TUI
+// never has — keyed useData/useStream reads would sit in `pending` and never
+// fetch. Safe here: this module is the terminal platform identity, so it is
+// never evaluated by a server render (which must keep the `window` inference).
+declareLiveClient();
 
 declare global {
     namespace JSX {
