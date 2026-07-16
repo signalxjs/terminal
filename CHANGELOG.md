@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-16
+
 ### Changed
 
+- **Breaking: SignalX core moves to the 0.10 band** (#87). `@sigx/reactivity` and `@sigx/runtime-core` are now pinned `>=0.10.0 <0.11.0` — as `dependencies` on `@sigx/runtime-terminal` / `@sigx/terminal`, and as `peerDependencies` on `@sigx/terminal-zero`, `@sigx/terminal-ui` and `@sigx/terminal-dev`. **Consumers must upgrade core to 0.10.x**; a 0.6.x core no longer satisfies these ranges. Nothing in the terminal API changed — core's breaking changes across 0.7.0–0.10.0 (slot-presence semantics, the `useAsync`/`<Suspense>`/`<ErrorBoundary>` removals) touch no code in this repo, and the renderer contract is unchanged apart from an optional trailing `appContext` on `patchProp`. `@sigx/vite` also moves to `^0.10.0`.
+
 - **Terminal apps no longer need a per-file `/** @jsxImportSource @sigx/terminal */` pragma** (#78): `terminalDevPlugin()` (`@sigx/terminal-dev`) now configures the oxc JSX transform itself (`runtime: 'automatic'`, `importSource: '@sigx/terminal'`) for both `serve` and `build`, so `.tsx` run through the dev runner compile against the terminal runtime with zero per-file boilerplate — matching how `sigx` (web) configures it in Vite and `@sigx/lynx` (native) does in its plugin. A file that still carries its own pragma keeps working (oxc honors the pragma over the config). For editors and `tsc`, set `"jsxImportSource": "@sigx/terminal"` in `tsconfig.json`; the repo examples now do exactly this (and carry no pragma). The internal package sources (`@sigx/terminal-zero`, `@sigx/terminal-ui`) keep their `@sigx/runtime-core` pragma until `@sigx/vite`'s library builder exposes a configurable import source.
+
+### Fixed
+
+- **`useData` / `useStream` now actually fetch in a TUI** (#87): `@sigx/runtime-terminal` declares itself a live client via core 0.10's new `declareLiveClient()`. Core otherwise infers "live client" from `typeof window !== 'undefined'` — a check that keeps server renders safe but reads as `false` in a terminal, so a keyed read mounted into `pending` and silently never fetched. Since `@sigx/terminal` re-exports `useData`, any app calling it got a read that hung forever. The declaration lives in the platform-identity module, so server renders keep the `window` inference.
 
 ## [0.6.2] - 2026-06-17
 

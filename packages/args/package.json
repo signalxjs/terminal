@@ -1,6 +1,6 @@
 {
     "name": "@sigx/args",
-    "version": "0.6.2",
+    "version": "0.7.0",
     "description": "Fluent, type-aware command & argument parser for CLIs — chainable arg builders, nested subcommands, headless help catalog",
     "type": "module",
     "main": "./dist/index.js",
@@ -40,7 +40,7 @@
         "url": "https://github.com/signalxjs/terminal/issues"
     },
     "devDependencies": {
-        "@sigx/vite": "^0.4.7",
+        "@sigx/vite": "^0.10.0",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3",
         "vite": "^8.0.3"

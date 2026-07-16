@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal-dev",
-    "version": "0.6.2",
+    "version": "0.7.0",
     "description": "HMR dev runner for SignalX terminal apps - edit components, see the running TUI update live",
     "type": "module",
     "main": "./dist/index.js",
@@ -50,13 +50,13 @@
         "vite": "^8.0.3"
     },
     "peerDependencies": {
-        "@sigx/runtime-core": ">=0.6.0 <0.7.0"
+        "@sigx/runtime-core": ">=0.10.0 <0.11.0"
     },
     "devDependencies": {
-        "@sigx/reactivity": "^0.6.0",
-        "@sigx/runtime-core": "^0.6.0",
+        "@sigx/reactivity": "^0.10.0",
+        "@sigx/runtime-core": "^0.10.0",
         "@sigx/runtime-terminal": "workspace:^",
-        "@sigx/vite": "^0.4.7",
+        "@sigx/vite": "^0.10.0",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3"
     },
