@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-18
+
 ### Changed
 
 - **Breaking: SignalX core moves to the 0.12 band** (#93). `@sigx/reactivity` and `@sigx/runtime-core` are now pinned `^0.12.0` — as `dependencies` on `@sigx/runtime-terminal` / `@sigx/terminal`, and as `peerDependencies` on `@sigx/terminal-zero`, `@sigx/terminal-ui` and `@sigx/terminal-dev` (runtime-core). **Consumers must upgrade core to 0.12.x**; a 0.10.x/0.11.x core no longer satisfies these ranges. Nothing in the terminal API changed: core 0.11 made the renderer namespace-agnostic (three new *optional* `RendererOptions` host ops — `getElementNamespace`/`getChildNamespace`/`getContainerNamespace` — and an `isSVG`→`ns` positional rename with positions unchanged), which a TUI renderer with no XML namespaces neither implements nor is affected by; core 0.12 is additive (the new `@sigx/server` package) and touches nothing here. The `declareLiveClient()` live-client declaration keeping `useData`/`useStream` working in the windowless runtime is unchanged and still verified by `runtime-terminal`'s `live-client` test. `@sigx/vite` also moves to `^0.12.0`, tracking the core line.

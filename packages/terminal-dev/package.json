@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal-dev",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "HMR dev runner for SignalX terminal apps - edit components, see the running TUI update live",
     "type": "module",
     "main": "./dist/index.js",
