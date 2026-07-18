@@ -4,6 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@sigx/reactivity':
+      specifier: ^0.12.0
+      version: 0.12.0
+    '@sigx/runtime-core':
+      specifier: ^0.12.0
+      version: 0.12.0
+
 importers:
 
   .:
@@ -151,8 +160,8 @@ importers:
   packages/args:
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -166,15 +175,15 @@ importers:
   packages/runtime-terminal:
     dependencies:
       '@sigx/reactivity':
-        specifier: '>=0.10.0 <0.11.0'
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-core':
-        specifier: '>=0.10.0 <0.11.0'
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -188,11 +197,11 @@ importers:
   packages/terminal:
     dependencies:
       '@sigx/reactivity':
-        specifier: '>=0.10.0 <0.11.0'
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-core':
-        specifier: '>=0.10.0 <0.11.0'
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
@@ -204,8 +213,8 @@ importers:
         version: link:../terminal-zero
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -223,17 +232,17 @@ importers:
         version: 8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4)
     devDependencies:
       '@sigx/reactivity':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-core':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -248,14 +257,14 @@ importers:
         version: link:../terminal-zero
     devDependencies:
       '@sigx/reactivity':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-core':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -273,14 +282,14 @@ importers:
         version: link:../runtime-terminal
     devDependencies:
       '@sigx/reactivity':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/runtime-core':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: 'catalog:'
+        version: 0.12.0
       '@sigx/vite':
-        specifier: ^0.10.0
-        version: 0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
+        specifier: ^0.12.0
+        version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -718,16 +727,16 @@ packages:
   '@rolldown/pluginutils@1.0.0':
     resolution: {integrity: sha512-aKs/3GSWyV0mrhNmt/96/Z3yczC3yvrzYATCiCXQebBsGyYzjNdUphRVLeJQ67ySKVXRfMxt2lm12pmXvbPFQQ==}
 
-  '@sigx/reactivity@0.10.0':
-    resolution: {integrity: sha512-vjNxN3b4er4nB6ysB0JU0CVzqy++12zBhUcSmKhaMYHxW1/KL5EiN8ZoDIAtAIOpZAAMlZaATLDlUQFWET1kgQ==}
+  '@sigx/reactivity@0.12.0':
+    resolution: {integrity: sha512-/CHsLMKC60C1/hTC1PWnbol52guU+Kg9IUiaCC+yOLvDM2RBpRKeG9J4lrPYbGD8Fi3oyLtAAmgy8cMCsVUpPQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
   '@sigx/reactivity@0.4.9':
     resolution: {integrity: sha512-YIvfliXJ1UAf2ypC8nIzo/qFwwrUK8BzQnns83onb9b5nfcRADj93iwYDgeqGDrDBMiHZ4QDu5TxXQt2d4zjog==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@sigx/runtime-core@0.10.0':
-    resolution: {integrity: sha512-gwS+GAUXzianwxKDYXInN/Ju7zd9gS8zoeenBi5JPNOisn72YP1tNfDBx4kkc5DI7x2JhtsR3XFF70nlBSNtyg==}
+  '@sigx/runtime-core@0.12.0':
+    resolution: {integrity: sha512-7Xfg5WB0mFWeZgVyKPOcuzZXeoMtyNfzMgtrKh30DQ3dMSnMTMPG6Di1kq76myvZU22twPmNk04RPM/3GEcmqg==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
   '@sigx/runtime-core@0.4.9':
@@ -738,16 +747,22 @@ packages:
     resolution: {integrity: sha512-bxD2vMERq+/ALGrVIxj9uzYWVxQ6rEVKVJwCbLopqBHOYpINjIG+Jwa1UP7E3kzbf4GbkhH48903kHyD34S0XQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@sigx/vite@0.10.0':
-    resolution: {integrity: sha512-C+sLhHmLHpvEB0cCb9QoXcihPlzneoNU+Dp9nTr36ZBjrlAuVFjE98Gmln/GbJA0huKeBZuANP9Z1oqBtW39xg==}
+  '@sigx/vite@0.12.0':
+    resolution: {integrity: sha512-+IqMDhbvcUQ4I73P7z/Wtvx6JqS6HoomoYhB83NyAOFkQdyanaPMo7Hgl520SbE8d3jq6T6UMJXImon/XV462g==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
+      '@sigx/resume': '*'
+      '@sigx/server': '*'
       '@sigx/server-renderer': '*'
       '@sigx/ssr-islands': '*'
       sigx: '*'
       vite: '>=8.0.0'
     peerDependenciesMeta:
+      '@sigx/resume':
+        optional: true
+      '@sigx/server':
+        optional: true
       '@sigx/server-renderer':
         optional: true
       '@sigx/ssr-islands':
@@ -1464,13 +1479,13 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0': {}
 
-  '@sigx/reactivity@0.10.0': {}
+  '@sigx/reactivity@0.12.0': {}
 
   '@sigx/reactivity@0.4.9': {}
 
-  '@sigx/runtime-core@0.10.0':
+  '@sigx/runtime-core@0.12.0':
     dependencies:
-      '@sigx/reactivity': 0.10.0
+      '@sigx/reactivity': 0.12.0
 
   '@sigx/runtime-core@0.4.9':
     dependencies:
@@ -1481,7 +1496,7 @@ snapshots:
       '@sigx/reactivity': 0.4.9
       '@sigx/runtime-core': 0.4.9
 
-  '@sigx/vite@0.10.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))':
+  '@sigx/vite@0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))':
     dependencies:
       sigx: 0.4.3
       vite: 8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4)

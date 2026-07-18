@@ -2,5 +2,12 @@ packages:
   - packages/*
   - examples/*
 
+# Single source of truth for the SignalX core version. Every package references
+# these as "catalog:", which pnpm rewrites to the range below on pack/publish.
+# Keep core single-minor (^0.12.0) — two @sigx/reactivity copies break reactivity.
+catalog:
+  '@sigx/reactivity': ^0.12.0
+  '@sigx/runtime-core': ^0.12.0
+
 onlyBuiltDependencies:
   - esbuild
