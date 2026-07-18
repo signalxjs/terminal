@@ -48,6 +48,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -64,6 +67,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -80,6 +86,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -96,6 +105,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -112,6 +124,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
@@ -147,6 +162,9 @@ importers:
         specifier: workspace:^
         version: link:../../packages/terminal
     devDependencies:
+      '@sigx/terminal-dev':
+        specifier: workspace:^
+        version: link:../../packages/terminal-dev
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.18
