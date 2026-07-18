@@ -1,6 +1,6 @@
 {
     "name": "@sigx/runtime-terminal",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "Terminal renderer for SignalX",
     "type": "module",
     "main": "./dist/index.js",
