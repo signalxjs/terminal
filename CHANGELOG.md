@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-23
+
+### Changed
+
+- **SignalX core retargeted to the 0.13 band** (#100). The `catalog:` block in `pnpm-workspace.yaml` now pins `@sigx/reactivity`, `@sigx/runtime-core` and `@sigx/vite` at `^0.13.0` (was `^0.12.0`); every package continues to reference them as `"catalog:"`, which pnpm rewrites to `^0.13.0` on `pnpm pack`/publish. **Consumers must upgrade core to 0.13.x** — a 0.12.x core no longer satisfies these ranges. This is a packaging-only change: nothing in the terminal API changed, and the single-shared-engine guarantee (one `@sigx/reactivity@0.13.x` across the workspace) is unchanged.
+
 ## [0.8.0] - 2026-07-18
 
 ### Changed
