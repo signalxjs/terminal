@@ -6,6 +6,8 @@
   "description": "SignalX Terminal — TUI framework with TSX support (terminal + runtime-terminal)",
   "type": "module",
   "scripts": {
+    "sync:core": "node scripts/sync-core.mjs",
+    "verify:catalog": "node scripts/check-catalog.mjs",
     "wt": "node scripts/worktree.mjs",
     "build": "pnpm --filter @sigx/args run build && pnpm --filter @sigx/runtime-terminal run build && pnpm --filter @sigx/terminal-zero run build && pnpm --filter @sigx/terminal-ui run build && pnpm --filter @sigx/terminal run build && pnpm --filter @sigx/terminal-dev run build",
     "dev": "pnpm build && cd examples/showcase && node ../../packages/terminal-dev/dist/cli.js src/main.tsx",

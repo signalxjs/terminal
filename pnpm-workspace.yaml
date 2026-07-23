@@ -8,6 +8,7 @@ packages:
 catalog:
   '@sigx/reactivity': ^0.12.0
   '@sigx/runtime-core': ^0.12.0
+  "@sigx/vite": ^0.12.0
 
 onlyBuiltDependencies:
   - esbuild

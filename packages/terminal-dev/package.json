@@ -56,7 +56,7 @@
         "@sigx/reactivity": "catalog:",
         "@sigx/runtime-core": "catalog:",
         "@sigx/runtime-terminal": "workspace:^",
-        "@sigx/vite": "^0.12.0",
+        "@sigx/vite": "catalog:",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.3"
     },

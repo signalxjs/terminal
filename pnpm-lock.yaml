@@ -12,6 +12,9 @@ catalogs:
     '@sigx/runtime-core':
       specifier: ^0.12.0
       version: 0.12.0
+    '@sigx/vite':
+      specifier: ^0.12.0
+      version: 0.12.0
 
 importers:
 
@@ -160,7 +163,7 @@ importers:
   packages/args:
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
@@ -182,7 +185,7 @@ importers:
         version: 0.12.0
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
@@ -213,7 +216,7 @@ importers:
         version: link:../terminal-zero
     devDependencies:
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
@@ -241,7 +244,7 @@ importers:
         specifier: workspace:^
         version: link:../runtime-terminal
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
@@ -263,7 +266,7 @@ importers:
         specifier: 'catalog:'
         version: 0.12.0
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
@@ -288,7 +291,7 @@ importers:
         specifier: 'catalog:'
         version: 0.12.0
       '@sigx/vite':
-        specifier: ^0.12.0
+        specifier: 'catalog:'
         version: 0.12.0(sigx@0.4.3)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
       '@types/node':
         specifier: ^22.0.0
