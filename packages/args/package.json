@@ -1,6 +1,6 @@
 {
     "name": "@sigx/args",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "description": "Fluent, type-aware command & argument parser for CLIs — chainable arg builders, nested subcommands, headless help catalog",
     "type": "module",
     "main": "./dist/index.js",

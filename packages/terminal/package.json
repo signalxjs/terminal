@@ -1,6 +1,6 @@
 {
     "name": "@sigx/terminal",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "description": "SignalX Terminal - TUI framework with TSX support",
     "type": "module",
     "main": "./dist/index.js",
