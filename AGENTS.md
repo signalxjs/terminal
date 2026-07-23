@@ -109,7 +109,18 @@ pnpm typecheck    # tsgo --noEmit
 pnpm lint         # oxlint
 pnpm lint:fix     
 pnpm verify:pack  # verify npm pack output is sane
+pnpm verify:catalog # every core dep goes through the single-minor catalog (CI gate)
+pnpm sync:core [X.Y] # align the catalog's core pins to a core minor; --check is a drift guard
 ```
+
+Core packages (`@sigx/reactivity`, `@sigx/runtime-core`, `@sigx/vite`) are pinned
+to a **single minor** in the `catalog:` block of `pnpm-workspace.yaml`, and every
+`package.json` references them as `"catalog:"`. `@sigx/reactivity` keeps reactive
+state in module-local variables, so two physical copies silently split core's
+singletons and break reactivity — the single-minor range forces pnpm to hoist one.
+`pnpm verify:catalog` enforces both halves in CI. On a core release,
+`.github/workflows/core-sync.yml` runs `sync:core` and opens an alignment PR
+automatically.
 
 To run a package script: `pnpm --filter <package-name> <script>`.
 
