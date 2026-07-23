@@ -27,6 +27,8 @@ pnpm build
 | `pnpm lint` | Runs `oxlint` on `packages/*/src`. |
 | `pnpm test` | Runs `vitest run`. |
 | `pnpm verify:pack` | Packs every public package and inspects what would ship to npm. |
+| `pnpm verify:catalog` | Fails if a sigx **core** dep is pinned inline instead of through the single-minor `catalog:` block. Runs in CI. |
+| `pnpm sync:core [X.Y]` | Aligns the catalog's core pins to a core minor (no arg = latest on npm). `--check` exits non-zero on drift. |
 
 ## Pre-push checklist
 
