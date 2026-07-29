@@ -7,7 +7,7 @@
  * that a re-sort does not shuffle rows whose values are identical.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { jsx } from '@sigx/runtime-core';
+import { jsx, signal } from '@sigx/runtime-core';
 import { renderTerminal, setOutputTarget } from '@sigx/runtime-terminal';
 import type { TableColumn } from '@sigx/terminal-zero';
 import { DataTable } from '../src/data/DataTable';
@@ -221,6 +221,35 @@ describe('DataTable', () => {
 
         const fallback = await mount({ rows: feed(20), height: Number.POSITIVE_INFINITY });
         expect(fallback.output()).toContain('1–10/20');
+    });
+
+    it('sanitises a controlled cursor before it reaches the viewport maths', async () => {
+        // A model is still an index. A fractional or non-finite one used to
+        // flow straight into moveCursor, which happily returns 4.7 or NaN —
+        // and since `cells[4.7]` is `undefined`, painting the row threw and
+        // took the whole frame down.
+        for (const bad of [3.7, Number.NaN]) {
+            unmount?.();
+            const state = signal({ cursor: bad });
+            const selected: (Row | undefined)[] = [];
+            captureOutput({ columns: 60, rows: 30 });
+            unmount = renderTerminal(
+                jsx(DataTable, {
+                    columns,
+                    rows: feed(20),
+                    height: 4,
+                    autofocus: true,
+                    model: () => state.cursor,
+                    onSelect: (row: Row) => selected.push(row),
+                }),
+                { patchConsole: false },
+            ).unmount;
+            await settle();
+            await press(DOWN);
+
+            expect(selected.at(-1)).toBeDefined();
+            expect(Number.isInteger(state.cursor)).toBe(true);
+        }
     });
 
     it('ignores UP at the very top', async () => {

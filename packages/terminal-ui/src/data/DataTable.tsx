@@ -98,9 +98,13 @@ export const DataTable = component<
             .map((item) => item.row);
     };
 
+    // A controlled cursor is still an index: anything non-finite or fractional
+    // would flow straight into the viewport maths and come back out as NaN,
+    // taking `select` (and the painted window) with it.
     const cursorOf = () => {
         const model = props.model?.value;
-        return typeof model === 'number' ? model : state.cursor;
+        if (typeof model === 'number' && Number.isFinite(model)) return Math.max(0, Math.floor(model));
+        return state.cursor;
     };
 
     const setCursor = (next: number, total: number) => {
