@@ -238,7 +238,7 @@ function flushRender() {
         const rows = target.rows;
         const bg = canvasEnabled && screenBgColor ? resolveBg(screenBgColor) : '';
         // Clamp to the viewport. An over-tall frame would scroll the alt
-        // buffer, and the next frame's [H then lands on a row that is no
+        // buffer, and the next frame's \x1B[H then lands on a row that is no
         // longer the frame's first — every following row shears, permanently.
         // Unlike inline (which keeps the bottom, the live end of a transcript)
         // fullscreen keeps the TOP: a dashboard's title and tabs are up there,
