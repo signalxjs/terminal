@@ -1,95 +1,161 @@
-import { component, Text, Spacer, Col, Row } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted, Text, Spacer, Col, Row, type Define } from '@sigx/terminal';
 import {
     Sparkline, Meter, Trend, BarChart, DetailList, StatusGrid,
-    commonScale, type StatusCell,
+    commonScale, type StatusCell, type StatusTone,
 } from '@sigx/terminal';
 
-/** A plausible request-rate history, with two polls that never came back. */
-const reqs: (number | null)[] = [
-    120, 138, 131, 155, 190, 260, 410, 380, 300, 250, 230, 210,
-    205, null, null, 190, 240, 320, 500, 640, 610, 540, 470, 430,
-];
+const WINDOW = 24;
+/** How often the "poll" lands. A real dashboard ticks about this fast. */
+const POLL_MS = 250;
 
-/** Latency, where the shape matters far more than the absolute level. */
-const latency: (number | null)[] = [
-    9, 11, 10, 12, 14, 13, 15, 22, 41, 38, 30, 24,
-    21, 19, 18, 20, 26, 44, 92, 130, 118, 96, 71, 58,
-];
+/**
+ * A caption line. `Text` is inline, so a bare one directly after a `Spacer`
+ * lands ON the spacer's blank line instead of below it — the `Col` makes it a
+ * block of its own.
+ */
+const Caption = component<Define.Slot<'default'>>(({ slots }) => {
+    return () => <Col><Text color="dim">{slots.default?.()}</Text></Col>;
+}, { name: 'Caption' });
 
-const percentiles = [
-    { label: 'p50', value: 18 },
-    { label: 'p90', value: 47 },
-    { label: 'p99', value: 130 },
-];
+/** Smooth, deterministic wobble — organic enough to watch, same every run. */
+const wave = (t: number, period: number, phase = 0) => Math.sin((t / period + phase) * Math.PI * 2);
 
-const shards: StatusCell[] = [
-    { label: 'p0', tone: 'ok' }, { label: 'p1', tone: 'ok' },
-    { label: 'p2', tone: 'danger' }, { label: 'p3', tone: 'ok' },
-    { label: 'p4', tone: 'ok' }, { label: 'p5', tone: 'warn' },
-    { label: 'p6', tone: 'ok' }, { label: 'p7', tone: 'idle' },
-];
+/** Request rate: a slow swell with a faster ripple on top. */
+function reqAt(t: number): number {
+    return Math.round(320 + 180 * wave(t, 47) + 60 * wave(t, 11, 0.3));
+}
 
+/** Latency: mostly calm, with a periodic spike that trails off. */
+function latencyAt(t: number): number {
+    const spike = Math.max(0, wave(t, 61, 0.25)) ** 6;
+    return Math.round(14 + 8 * wave(t, 17, 0.6) + 130 * spike);
+}
+
+/** Every ~30th poll never comes back — so the gap glyph is visible live. */
+const isGap = (t: number) => t % 31 === 0 || t % 31 === 1;
+
+const sampleAt = (t: number, at: (t: number) => number): number | null =>
+    isGap(t) ? null : at(t);
+
+const seed = (at: (t: number) => number): (number | null)[] =>
+    Array.from({ length: WINDOW }, (_, i) => sampleAt(i, at));
+
+const TONES: StatusTone[] = ['ok', 'ok', 'danger', 'ok', 'ok', 'warn', 'ok', 'idle'];
 const HOT = [{ at: 0.75, color: 'warn' }, { at: 0.92, color: 'danger' }];
 
 export const MetricsDemo = component(() => {
-    return () => (
-        <Col>
-            {/* Text is inline: each caption line needs its own block. */}
-            <Col><Text color="dim">Sparkline — zero-anchored, so a flat series looks flat.</Text></Col>
-            <Col><Text color="dim">`·` is a gap, not a zero: those two polls never came back.</Text></Col>
-            <Spacer size={1} />
-            <Sparkline values={reqs} width={24} label="req/s" value="430" />
-            <Sparkline values={latency} width={24} label="p99 ms" value="58ms" thresholds={HOT} />
-            <Spacer size={1} />
-            <Text color="dim">…two rows deep, and in braille (two samples per cell):</Text>
-            <Sparkline values={latency} width={24} height={2} label="p99 ms" thresholds={HOT} />
-            <Sparkline values={latency} width={24} height={2} variant="braille" label="p99 ms" />
-            <Spacer size={1} />
+    const state = signal({
+        t: WINDOW,
+        reqs: seed(reqAt),
+        latency: seed(latencyAt),
+    });
 
-            <Text color="dim">Meter — a bare gauge. Thresholds colour it as it fills.</Text>
-            <Spacer size={1} />
-            <Meter label="cpu" value={31} max={100} width={16} text="31%" thresholds={HOT} />
-            <Meter label="memory" value={78} max={100} width={16} text="78%" thresholds={HOT} />
-            <Meter label="queue" value={96} max={100} width={16} text="96%" thresholds={HOT} smooth />
-            <Spacer size={1} />
+    let timer: ReturnType<typeof setInterval> | null = null;
+    onMounted(() => {
+        timer = setInterval(() => {
+            const t = state.t + 1;
+            state.t = t;
+            // Replaced wholesale rather than mutated: the signal tracks the
+            // array identity, and a dashboard's history is a window anyway.
+            state.reqs = [...state.reqs.slice(1), sampleAt(t, reqAt)];
+            state.latency = [...state.latency.slice(1), sampleAt(t, latencyAt)];
+        }, POLL_MS);
+    });
+    onUnmounted(() => { if (timer) clearInterval(timer); });
 
-            <Text color="dim">BarChart — every bar on one scale, so they are comparable.</Text>
-            <Spacer size={1} />
-            <BarChart
-                items={percentiles}
-                scale={commonScale(percentiles.map((p) => p.value))}
-                width={16}
-                format={(ms: number) => `${ms}ms`}
-                thresholds={HOT}
-            />
-            <Spacer size={1} />
+    return () => {
+        const { t, reqs, latency } = state;
+        const last = <T,>(xs: T[]) => xs[xs.length - 1]!;
+        const reqNow = last(reqs);
+        const reqPrev = reqs[reqs.length - 2] ?? null;
+        const msNow = last(latency);
+        const msPrev = latency[latency.length - 2] ?? null;
 
-            <Row gap={4}>
-                <Col>
-                    <Text color="dim">DetailList</Text>
-                    <Spacer size={1} />
-                    <DetailList
-                        rows={[
-                            { label: 'cluster', value: 'eu-west-1' },
-                            { label: 'silos', value: '24' },
-                            { label: 'uptime', value: '3d 04:11' },
-                            { label: 'errors', value: '17', tone: 'danger' },
-                        ]}
-                    />
-                </Col>
-                <Col>
-                    <Text color="dim">Trend — polarity decides whether ▲ is bad news</Text>
-                    <Spacer size={1} />
-                    <Trend value="430 req/s" current={430} previous={470} polarity="higher-is-better" />
-                    <Trend value="58ms p99" current={58} previous={41} polarity="higher-is-worse" />
-                    <Trend value="24 silos" current={24} previous={24} />
-                </Col>
-            </Row>
-            <Spacer size={1} />
+        // Percentiles straight out of the live window. `commonScale`'s `clip`
+        // is a quantile, so it does the work — and scaling the panel to p99
+        // rather than the max is exactly why a spike doesn't flatten the rest.
+        const finite = latency.filter((v): v is number => v !== null);
+        const percentiles = [
+            { label: 'p50', value: commonScale(finite, { clip: 0.5 }) },
+            { label: 'p90', value: commonScale(finite, { clip: 0.9 }) },
+            { label: 'p99', value: commonScale(finite, { clip: 0.99 }) },
+        ];
+        const scale = commonScale(percentiles.map((p) => p.value));
 
-            <Text color="dim">StatusGrid — three states that mean different things</Text>
-            <Spacer size={1} />
-            <StatusGrid cells={shards} perRow={4} legend="● claimed  ◆ contended  ○ UNCLAIMED  · idle" />
-        </Col>
-    );
+        // One shard drifts through the states, so the grid is not a still life.
+        const shards: StatusCell[] = TONES.map((tone, i) => ({
+            label: `p${i}`,
+            tone: i === (Math.floor(t / 8) % TONES.length) ? 'warn' : tone,
+        }));
+
+        const cpu = Math.round(46 + 34 * wave(t, 23));
+        const memory = Math.round(70 + 22 * wave(t, 53, 0.4));
+        const queue = Math.round(50 + 46 * wave(t, 13, 0.7));
+
+        return (
+            <Col>
+                <Caption>Sparkline — live, zero-anchored, so a flat series stays flat.</Caption>
+                <Caption>`·` is a gap, not a zero: watch the poll that never comes back.</Caption>
+                <Spacer size={1} />
+                <Sparkline values={reqs} width={WINDOW} label="req/s" value={`${reqNow ?? '—'}`} />
+                <Sparkline
+                    values={latency}
+                    width={WINDOW}
+                    label="latency"
+                    value={`${msNow ?? '—'}ms`}
+                    thresholds={HOT}
+                />
+                <Spacer size={1} />
+                <Caption>…two rows deep, and in braille (two samples per cell):</Caption>
+                <Sparkline values={latency} width={WINDOW} height={2} label="latency" thresholds={HOT} />
+                <Sparkline values={latency} width={WINDOW} height={2} variant="braille" label="latency" />
+                <Spacer size={1} />
+
+                <Caption>Meter — a bare gauge. Thresholds colour it as it fills.</Caption>
+                <Spacer size={1} />
+                <Meter label="cpu" value={cpu} max={100} width={16} text={`${cpu}%`} thresholds={HOT} />
+                <Meter label="memory" value={memory} max={100} width={16} text={`${memory}%`} thresholds={HOT} />
+                <Meter label="queue" value={queue} max={100} width={16} text={`${queue}%`} thresholds={HOT} smooth />
+                <Spacer size={1} />
+
+                <Caption>BarChart — every bar on one scale, so they stay comparable.</Caption>
+                <Spacer size={1} />
+                <BarChart
+                    items={percentiles}
+                    scale={scale}
+                    width={16}
+                    format={(ms: number) => `${ms}ms`}
+                    thresholds={HOT}
+                />
+                <Spacer size={1} />
+
+                <Row gap={4}>
+                    <Col>
+                        <Caption>DetailList</Caption>
+                        <Spacer size={1} />
+                        <DetailList
+                            rows={[
+                                { label: 'cluster', value: 'eu-west-1' },
+                                { label: 'silos', value: '24' },
+                                { label: 'polls', value: String(t) },
+                                { label: 'errors', value: '17', tone: 'danger' },
+                            ]}
+                        />
+                    </Col>
+                    <Col>
+                        <Caption>Trend — polarity decides whether ▲ is bad news</Caption>
+                        <Spacer size={1} />
+                        <Trend value={`${reqNow ?? '—'} req/s`} current={reqNow} previous={reqPrev} polarity="higher-is-better" />
+                        <Trend value={`${msNow ?? '—'}ms latency`} current={msNow} previous={msPrev} polarity="higher-is-worse" />
+                        <Trend value="24 silos" current={24} previous={24} />
+                    </Col>
+                </Row>
+                <Spacer size={1} />
+
+                <Caption>StatusGrid — three states that mean different things</Caption>
+                <Spacer size={1} />
+                <StatusGrid cells={shards} perRow={4} legend="● claimed  ◆ contended  ○ UNCLAIMED  · idle" />
+            </Col>
+        );
+    };
 }, { name: 'MetricsDemo' });
