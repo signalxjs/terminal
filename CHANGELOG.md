@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-29
+
+### Changed
+
+- **SignalX core retargeted to the 0.14 band** (#108). The `catalog:` block in `pnpm-workspace.yaml` now pins `@sigx/reactivity`, `@sigx/runtime-core` and `@sigx/vite` at `^0.14.0` (was `^0.13.0`); every package continues to reference them as `"catalog:"`, which pnpm rewrites to `^0.14.0` on `pnpm pack`/publish. **Consumers must upgrade core to 0.14.x** — a 0.13.x core no longer satisfies these ranges. This is a packaging-only change: nothing in the terminal API changed, and the single-shared-engine guarantee (one `@sigx/reactivity@0.14.x` across the workspace) is unchanged.
+
+  Core 0.14 changes reactivity semantics in a way worth noting for renderer authors: a reactive object's **key set** is now a dependency, implemented as `ownKeys` and `has` proxy traps, so enumerating reactive state inside an effect or computed re-runs the reader when a key appears or disappears. Verified beyond the unit suite (321 tests) by running the TUI showcase against 0.14.0 — it boots, paints, navigates by keyboard, and its spinners and progress bars animate continuously with no dropped frames or stalled effects.
+
 ## [0.9.0] - 2026-07-23
 
 ### Changed
