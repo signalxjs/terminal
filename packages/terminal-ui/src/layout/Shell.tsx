@@ -155,8 +155,12 @@ export const Shell = component<
         if (above.length) above.push({ rows: 1, node: <box><text> </text></box> });
         if (below.length) below.unshift({ rows: 1, node: <box><text> </text></box> });
 
+        // One object, spread onto the body `<box>` *and* measured by
+        // `boxChrome`: the pane the body is handed and the box drawn around it
+        // are the same fact, not two that have to be kept in agreement.
         const boxed = (props.body ?? 'boxed') === 'boxed';
-        const bodyChrome = boxChrome({ border: boxed, padX: boxed ? 1 : 0, dropShadow: boxed });
+        const bodyBox = { border: 'rounded', padX: 1, dropShadow: true } as const;
+        const bodyChrome = boxed ? boxChrome(bodyBox) : boxChrome({});
 
         const spent = [...above, ...below].reduce((n, s) => n + s.rows, bodyChrome.rows);
         const pane: ShellPane = {
@@ -177,12 +181,10 @@ export const Shell = component<
                         // right border and shadow past the terminal edge, where
                         // the renderer's width clamp cuts them off.
                         <box
-                            border="rounded"
+                            {...bodyBox}
                             borderColor={resolveColor('line')}
                             label={props.bodyTitle ? ellipsize(props.bodyTitle, pane.width) : undefined}
                             labelColor={resolveColor('accent')}
-                            padX={1}
-                            dropShadow
                             shadowColor={resolveColor('shadow')}
                         >
                             {content}

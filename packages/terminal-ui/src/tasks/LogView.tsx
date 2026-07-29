@@ -6,8 +6,13 @@ import {
 } from '@sigx/terminal-zero';
 import type { LogStore } from './logStore';
 
-/** What the viewport box below spends, derived from the props it is given. */
-const VIEWPORT_CHROME = boxChrome({ border: 'rounded', padX: 1 });
+/**
+ * The viewport box's shape, spread onto the `<box>` *and* measured by
+ * `boxChrome` — one object, so the width the content is fitted to and the box
+ * that surrounds it are the same fact rather than two that must agree.
+ */
+const VIEWPORT_BOX = { border: 'rounded', padX: 1 } as const;
+const VIEWPORT_CHROME = boxChrome(VIEWPORT_BOX);
 
 /**
  * Focusable, scrollable log viewer — the "logs tab" of a persistent dev TUI.
@@ -122,8 +127,7 @@ export const LogView = component<
         // The box sizes itself to its widest line, so fit every line to the
         // interior width — the viewport then spans the full configured width
         // instead of hugging its content, and short streams keep a stable
-        // frame height. `boxChrome` derives what the box below spends, so the
-        // two cannot drift apart.
+        // frame height.
         const inner = Math.max(1, width - VIEWPORT_CHROME.cols);
         const window = fitLines(all.slice(start, end), { width: inner, height });
 
@@ -135,11 +139,10 @@ export const LogView = component<
         return (
             <box>
                 <box
-                    border="rounded"
+                    {...VIEWPORT_BOX}
                     borderColor={resolveColor(focused ? 'accent' : 'line')}
                     label={props.title}
                     labelColor={resolveColor(focused ? 'accent' : 'dim')}
-                    padX={1}
                 >
                     {rows}
                 </box>

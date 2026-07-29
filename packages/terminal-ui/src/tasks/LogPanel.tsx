@@ -5,10 +5,13 @@ import type { LogStore } from './logStore';
 
 /**
  * What each variant spends on chrome, per row. The `panel` variant pays for the
- * box it draws — derived, so it tracks the box's props — while `bar` pays for
- * its two-cell `│ ` gutter and `plain` pays nothing.
+ * box it draws: `PANEL_BOX` is spread onto that `<box>` *and* measured by
+ * `boxChrome`, so its shape and its cost are one fact rather than two that must
+ * agree. `bar` pays for its two-cell `│ ` gutter and `plain` pays nothing —
+ * neither draws a border, so neither is a `boxChrome` term.
  */
-const PANEL_CHROME = boxChrome({ border: 'rounded', padX: 1 });
+const PANEL_BOX = { border: 'rounded', padX: 1 } as const;
+const PANEL_CHROME = boxChrome(PANEL_BOX);
 const BAR_GUTTER = 2;
 
 /**
@@ -48,7 +51,7 @@ export const LogPanel = component<
 
         if (variant === 'panel') {
             return (
-                <box border="rounded" borderColor={borderColor} label={props.title} labelColor={resolveColor('accent')} padX={1}>
+                <box {...PANEL_BOX} borderColor={borderColor} label={props.title} labelColor={resolveColor('accent')}>
                     {src.flatMap((line, i) => {
                         const row = <text color={textColor}>{truncateToWidth(line, width - PANEL_CHROME.cols)}</text>;
                         return i > 0 ? [<br />, row] : [row];
