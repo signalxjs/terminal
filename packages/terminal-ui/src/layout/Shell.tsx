@@ -35,9 +35,7 @@ interface Segment {
  * reports the *terminal*, and what a body needs is that minus whatever chrome
  * the frame drew, which is a private detail of the frame's own layout. Without
  * this, every caller hardcodes a guess (`rows - 12`, `rows - 13`, `- 4`) that is
- * wrong the moment the frame changes shape — and since the renderer never clamps
- * a fullscreen frame, an over-tall one scrolls the alt screen and shears the
- * whole dashboard.
+ * wrong the moment the frame changes shape.
  *
  * ## A budget, not a reservation
  *
@@ -45,8 +43,10 @@ interface Segment {
  * layout is content-driven end to end — there is no clipping primitive and no
  * way to measure an opaque child — so `<Shell>` cannot hold the box on the
  * body's behalf. A body that emits fewer rows leaves the frame short; one that
- * emits more shears it. Comply by fitting content to the pane, which
- * `fitLines(lines, pane)` (`@sigx/terminal-zero`) does in one call.
+ * emits more pushes the footer off the bottom (the renderer clamps a fullscreen
+ * frame to the viewport, so the damage stops there rather than shearing the
+ * screen). Comply by fitting content to the pane, which `fitLines(lines, pane)`
+ * (`@sigx/terminal-zero`) does in one call.
  *
  * ## What this deliberately does not do
  *

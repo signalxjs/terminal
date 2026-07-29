@@ -30,10 +30,9 @@ describe('boxChrome', () => {
         // string the renderer treats as "no border" has to cost nothing here
         // too — it is truthy, and charging for it would be a silent column off.
         expect(boxChrome({ border: 'none' })).toEqual({ rows: 0, cols: 0 });
-        // Every style costs the same, `'bold'` included — the renderer treats
-        // it as an alias of `'thick'` (index.ts:603), so it has to be accepted
-        // here or a caller forwarding the prop needs a cast.
-        for (const border of ['single', 'double', 'rounded', 'thick', 'bold'] as const) {
+        // Every style costs the same, so the union exists to accept whatever
+        // the caller's `border` prop holds, not to distinguish styles.
+        for (const border of ['single', 'double', 'rounded', 'thick'] as const) {
             expect(boxChrome({ border })).toEqual({ rows: 2, cols: 2 });
         }
     });
