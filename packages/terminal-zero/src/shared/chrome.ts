@@ -27,11 +27,16 @@ export interface BoxChrome {
 /** How a `<box>` was configured, for the terms that cost space. */
 export interface BoxChromeOptions {
     /**
-     * The box's `border` prop, passed through as-is — a style name or a plain
-     * boolean. `'none'` costs nothing, matching the renderer, so a caller can
-     * forward a variable border style without special-casing it. (`'bold'` is
-     * the renderer's alias for `'thick'`; every style costs the same, so the
-     * union exists to accept the prop, not to distinguish the styles.)
+     * Whether the box draws a border, as either a plain boolean or any style
+     * name the renderer accepts — so a caller can forward a `<box>`'s own
+     * `border` prop without special-casing it. `'none'` is falsy here, as it
+     * is to the renderer.
+     *
+     * Every style costs the same, so this union is about *accepting* input,
+     * not distinguishing styles. It is deliberately a superset of the JSX
+     * `border` prop's type: it also takes `boolean`, and `'bold'`, which
+     * `drawBox` honours as an alias of `'thick'` but the intrinsic element's
+     * typing does not yet advertise (see #113).
      */
     border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'bold' | 'none';
     /**
