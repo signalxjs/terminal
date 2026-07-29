@@ -34,10 +34,11 @@ export interface BoxChromeOptions {
     border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'none';
     /**
      * The `padX` prop: cells of padding on *each* side. Truncated to a
-     * whole number of cells, because `' '.repeat()` truncates too.
+     * whole number of cells, because `' '.repeat()` truncates too. Inert
+     * without a border — see {@link boxChrome}.
      */
     padX?: number;
-    /** The `dropShadow` prop. */
+    /** The `dropShadow` prop. Inert without a border. */
     dropShadow?: boolean;
 }
 
@@ -46,10 +47,15 @@ export interface BoxChromeOptions {
  * them from the space it has and hand the remainder to its content.
  *
  * Mirrors `drawBox` in `@sigx/runtime-terminal` exactly: a border adds one row
- * top and bottom and one column each side (`border="none"` draws none, and
- * costs none); `padX` widens every content line symmetrically; a drop shadow
- * appends one column to every row below the top border and pushes one extra
- * row underneath.
+ * top and bottom and one column each side; `padX` widens every content line
+ * symmetrically; a drop shadow appends one column to every row below the top
+ * border and pushes one extra row underneath.
+ *
+ * **A borderless box costs nothing**, `padX` and `dropShadow` included.
+ * `drawBox` runs only when a border is drawn, so on a bare `<box>` — the
+ * grouping element `Col` and friends render — those two props are silently
+ * inert. `border="none"` is the same case, which is why the border term is
+ * taken as the prop rather than as a boolean the caller has to derive.
  *
  * ```ts
  * // A rounded, padX={1}, shadowed panel filling the terminal:
@@ -58,15 +64,20 @@ export interface BoxChromeOptions {
  * ```
  */
 export function boxChrome(opts: BoxChromeOptions = {}): BoxChrome {
+    // A borderless box costs nothing at all. `padX` and `dropShadow` are
+    // `drawBox` options, and `drawBox` only runs when a border is drawn
+    // (`runtime-terminal/src/index.ts:470`) — so on a bare `<box>` they are
+    // inert, and charging for them would report space nothing spent.
+    if (!opts.border || opts.border === 'none') return { rows: 0, cols: 0 };
+
     // Floored, not rounded: the renderer pads with `' '.repeat(padX)`, and
     // `repeat` truncates its argument. Charging 2 columns for `padX={1.5}`
     // would leave the box a column wider than anything drew.
     const padX = Math.max(0, Math.floor(opts.padX ?? 0));
-    const border = opts.border && opts.border !== 'none' ? 1 : 0;
     const shadow = opts.dropShadow ? 1 : 0;
     return {
-        rows: border * 2 + shadow,
-        cols: border * 2 + padX * 2 + shadow,
+        rows: 2 + shadow,
+        cols: 2 + padX * 2 + shadow,
     };
 }
 

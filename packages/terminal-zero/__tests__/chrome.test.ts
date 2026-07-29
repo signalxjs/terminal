@@ -30,7 +30,6 @@ describe('boxChrome', () => {
         // string the renderer treats as "no border" has to cost nothing here
         // too — it is truthy, and charging for it would be a silent column off.
         expect(boxChrome({ border: 'none' })).toEqual({ rows: 0, cols: 0 });
-        expect(boxChrome({ border: 'none', padX: 1 })).toEqual({ rows: 0, cols: 2 });
         expect(boxChrome({ border: 'rounded' })).toEqual({ rows: 2, cols: 2 });
         expect(boxChrome({ border: 'thick' })).toEqual({ rows: 2, cols: 2 });
     });
@@ -40,12 +39,21 @@ describe('boxChrome', () => {
     });
 
     it('charges padX to both sides, and no rows — there is no padY', () => {
-        expect(boxChrome({ padX: 1 })).toEqual({ rows: 0, cols: 2 });
-        expect(boxChrome({ padX: 3 })).toEqual({ rows: 0, cols: 6 });
+        expect(boxChrome({ border: true, padX: 1 })).toEqual({ rows: 2, cols: 4 });
+        expect(boxChrome({ border: true, padX: 3 })).toEqual({ rows: 2, cols: 8 });
     });
 
     it('charges a drop shadow one row and one column', () => {
-        expect(boxChrome({ dropShadow: true })).toEqual({ rows: 1, cols: 1 });
+        expect(boxChrome({ border: true, dropShadow: true })).toEqual({ rows: 3, cols: 3 });
+    });
+
+    it('charges nothing for padX or dropShadow without a border', () => {
+        // Both are `drawBox` options and `drawBox` only runs when a border is
+        // drawn, so on a bare `<box>` they are inert. Charging for them would
+        // report space that nothing spent — and a caller subtracting it would
+        // under-size its content by three columns for no reason.
+        expect(boxChrome({ padX: 3, dropShadow: true })).toEqual({ rows: 0, cols: 0 });
+        expect(boxChrome({ border: 'none', padX: 3, dropShadow: true })).toEqual({ rows: 0, cols: 0 });
     });
 
     it('adds up for the panel recipe the library actually draws', () => {
@@ -61,12 +69,12 @@ describe('boxChrome', () => {
         // `drawBox` pads with `' '.repeat(padX)`, and `repeat` truncates — so
         // charging 3 columns for `padX={1.5}` would report the box a column
         // wider than anything actually drew.
-        expect(boxChrome({ padX: 1.5 })).toEqual({ rows: 0, cols: 2 });
-        expect(boxChrome({ padX: 0.9 })).toEqual({ rows: 0, cols: 0 });
+        expect(boxChrome({ border: true, padX: 1.5 })).toEqual({ rows: 2, cols: 4 });
+        expect(boxChrome({ border: true, padX: 0.9 })).toEqual({ rows: 2, cols: 2 });
     });
 
-    it('charges nothing for a negative padX', () => {
-        expect(boxChrome({ padX: -2 })).toEqual({ rows: 0, cols: 0 });
+    it('collapses a negative padX back to a plain border', () => {
+        expect(boxChrome({ border: true, padX: -2 })).toEqual(boxChrome({ border: true }));
     });
 });
 
@@ -181,4 +189,14 @@ describe('boxChrome agrees with what drawBox paints', () => {
             expect(painted - 4).toBe(chrome.cols);
         });
     }
+
+    it('charges nothing for a borderless box, whatever else is set on it', () => {
+        // The case the unit tests can only assert by assumption: `padX` and
+        // `dropShadow` are `drawBox` options, and a bare `<box>` never reaches
+        // `drawBox`, so the renderer ignores them entirely.
+        const lines = paint({ padX: 3, dropShadow: true }, CONTENT);
+        expect(lines).toHaveLength(CONTENT.length);
+        expect(Math.max(...lines.map((l) => displayWidth(l)))).toBe(4);
+        expect(boxChrome({ padX: 3, dropShadow: true })).toEqual({ rows: 0, cols: 0 });
+    });
 });
