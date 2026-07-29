@@ -27,11 +27,15 @@ export interface BoxChrome {
 /** How a `<box>` was configured, for the terms that cost space. */
 export interface BoxChromeOptions {
     /**
-     * Whether the box draws a border. Pass the truthiness of the `border` prop
-     * — note `border="none"` draws nothing, so it counts as `false`.
+     * The box's `border` prop, passed through as-is — a style name or a plain
+     * boolean. `'none'` costs nothing, matching the renderer, so a caller can
+     * forward a variable border style without special-casing it.
      */
-    border?: boolean;
-    /** The `padX` prop: cells of padding on *each* side. */
+    border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'none';
+    /**
+     * The `padX` prop: cells of padding on *each* side. Truncated to a
+     * whole number of cells, because `' '.repeat()` truncates too.
+     */
     padX?: number;
     /** The `dropShadow` prop. */
     dropShadow?: boolean;
@@ -42,9 +46,10 @@ export interface BoxChromeOptions {
  * them from the space it has and hand the remainder to its content.
  *
  * Mirrors `drawBox` in `@sigx/runtime-terminal` exactly: a border adds one row
- * top and bottom and one column each side; `padX` widens every content line
- * symmetrically; a drop shadow appends one column to every row below the top
- * border and pushes one extra row underneath.
+ * top and bottom and one column each side (`border="none"` draws none, and
+ * costs none); `padX` widens every content line symmetrically; a drop shadow
+ * appends one column to every row below the top border and pushes one extra
+ * row underneath.
  *
  * ```ts
  * // A rounded, padX={1}, shadowed panel filling the terminal:
@@ -53,8 +58,11 @@ export interface BoxChromeOptions {
  * ```
  */
 export function boxChrome(opts: BoxChromeOptions = {}): BoxChrome {
-    const padX = Math.max(0, opts.padX ?? 0);
-    const border = opts.border ? 1 : 0;
+    // Floored, not rounded: the renderer pads with `' '.repeat(padX)`, and
+    // `repeat` truncates its argument. Charging 2 columns for `padX={1.5}`
+    // would leave the box a column wider than anything drew.
+    const padX = Math.max(0, Math.floor(opts.padX ?? 0));
+    const border = opts.border && opts.border !== 'none' ? 1 : 0;
     const shadow = opts.dropShadow ? 1 : 0;
     return {
         rows: border * 2 + shadow,

@@ -136,8 +136,11 @@ export const Shell = component<
             });
         }
 
-        if (props.status) below.push({ rows: 1, node: <StatusBar items={props.status} /> });
-        if (props.hints) below.push({ rows: 1, node: <KeyHints hints={props.hints} /> });
+        // Emptiness, not presence: an app that builds its footer conditionally
+        // passes `[]`, and charging a row for a footer with nothing in it would
+        // shrink the pane to draw a blank line.
+        if (props.status?.length) below.push({ rows: 1, node: <StatusBar items={props.status} /> });
+        if (props.hints?.length) below.push({ rows: 1, node: <KeyHints hints={props.hints} /> });
 
         // A `<Spacer size={0}>` still renders one row, so a blank line has to be
         // omitted rather than sized away.

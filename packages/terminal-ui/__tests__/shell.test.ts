@@ -185,6 +185,16 @@ describe('Shell', () => {
         expect(both().height).toBe(status().height - 1);
     });
 
+    it('charges nothing for a footer that is present but empty', async () => {
+        // An app building its footer conditionally passes `[]`; spending a row
+        // to draw a blank line would shrink the pane for nothing.
+        const { pane: bare } = await mount({});
+        unmount?.(); unmount = null;
+        const { pane: empty } = await mount({ status: [], hints: [] });
+
+        expect(empty().height).toBe(bare().height);
+    });
+
     it('recomputes the pane on resize', async () => {
         const { cap, pane } = await mount({ tabs: TABS }, { columns: 60, rows: 24 });
         const before = { ...pane() };

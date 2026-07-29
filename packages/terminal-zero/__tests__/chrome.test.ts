@@ -22,8 +22,17 @@ describe('boxChrome', () => {
     it('costs nothing for a bare box', () => {
         expect(boxChrome()).toEqual({ rows: 0, cols: 0 });
         expect(boxChrome({})).toEqual({ rows: 0, cols: 0 });
-        // `border="none"` draws nothing, so callers pass its truthiness as false.
         expect(boxChrome({ border: false })).toEqual({ rows: 0, cols: 0 });
+    });
+
+    it('charges nothing for border="none", which draws nothing', () => {
+        // Callers forward a variable border style straight through, so the
+        // string the renderer treats as "no border" has to cost nothing here
+        // too — it is truthy, and charging for it would be a silent column off.
+        expect(boxChrome({ border: 'none' })).toEqual({ rows: 0, cols: 0 });
+        expect(boxChrome({ border: 'none', padX: 1 })).toEqual({ rows: 0, cols: 2 });
+        expect(boxChrome({ border: 'rounded' })).toEqual({ rows: 2, cols: 2 });
+        expect(boxChrome({ border: 'thick' })).toEqual({ rows: 2, cols: 2 });
     });
 
     it('charges a border two rows and two columns', () => {
@@ -48,7 +57,15 @@ describe('boxChrome', () => {
         expect(boxChrome({ border: true, padX: 1 })).toEqual({ rows: 2, cols: 4 });
     });
 
-    it('treats a negative or fractional padX as callers would expect', () => {
+    it('floors a fractional padX, because the renderer does', () => {
+        // `drawBox` pads with `' '.repeat(padX)`, and `repeat` truncates — so
+        // charging 3 columns for `padX={1.5}` would report the box a column
+        // wider than anything actually drew.
+        expect(boxChrome({ padX: 1.5 })).toEqual({ rows: 0, cols: 2 });
+        expect(boxChrome({ padX: 0.9 })).toEqual({ rows: 0, cols: 0 });
+    });
+
+    it('charges nothing for a negative padX', () => {
         expect(boxChrome({ padX: -2 })).toEqual({ rows: 0, cols: 0 });
     });
 });
@@ -151,6 +168,7 @@ describe('boxChrome agrees with what drawBox paints', () => {
         { border: true, padX: 1 },
         { border: true, padX: 2, dropShadow: true },
         { border: true, dropShadow: true },
+        { border: true, padX: 1.5 }, // the renderer truncates; so must we
     ]) {
         it(`matches ${JSON.stringify(opts)}`, () => {
             const chrome = boxChrome(opts);
