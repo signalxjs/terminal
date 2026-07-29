@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- **`LogView`, `LogPanel` and `DataTable` derive their box chrome instead of restating it** (#114). Three `- 4` literals commented "rounded border (2) + padX (2)" became `boxChrome({ border: 'rounded', padX: 1 })`, computed from the same values passed to the `<box>` — so a component whose box changes shape can no longer keep subtracting the old number. `LogView`'s hand-rolled pad-and-truncate loop is now `fitLines(window, { width, height })`, the helper generalised out of it. No layout change: the existing geometry assertions pass untouched.
+- **`LogView` and `LogPanel` derive their box chrome instead of restating it** (#114). Two `- 4` literals commented "rounded border (2) + padX (2)" are gone. Each site now declares the box's shape once — `const VIEWPORT_BOX = { border: 'rounded', padX: 1 }` — spread onto the `<box>` *and* passed to `boxChrome`, so the width content is fitted to and the box drawn around it are one fact rather than two that must agree. `<Shell>`'s body box adopts the same shape. (`DataTable` was converted in #106.) `LogView`'s hand-rolled pad-and-truncate loop is now `fitLines(window, { width, height })`, the helper generalised out of it. No layout change: the existing geometry assertions pass untouched.
 
   Two nearby constants were deliberately **not** converted, because they are not box chrome and `boxChrome` would misdescribe them: `LogPanel`'s `bar` variant pays 2 cells for its `│ ` gutter, and `TextArea` pays 2 for its `> ` prefix — neither component draws a border. They are named constants now instead of bare literals.
 
