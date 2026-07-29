@@ -212,6 +212,17 @@ describe('DataTable', () => {
         }
     });
 
+    it('treats height 0 as one row, and a non-finite height as unset', async () => {
+        // `0` is a real request; `||` would have read it as "unset" and given
+        // ten rows. Infinity must not reach the viewport slice.
+        const one = await mount({ rows: feed(20), height: 0 });
+        expect(one.output()).toContain('1–1/20');
+        unmount?.();
+
+        const fallback = await mount({ rows: feed(20), height: Number.POSITIVE_INFINITY });
+        expect(fallback.output()).toContain('1–10/20');
+    });
+
     it('ignores UP at the very top', async () => {
         const cap = await mount({ rows: feed(20), height: 4 });
         await press(UP);

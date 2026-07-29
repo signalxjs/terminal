@@ -70,7 +70,14 @@ export const DataTable = component<
 
     const cols = (): TableColumn<any>[] => props.columns || [];
     const sortableCols = () => cols().filter((column) => column.sortable !== false);
-    const getHeight = () => Math.max(1, props.height || 10);
+    // `0` is a real request (clamped to one row), not "unset"; a non-finite
+    // height falls back to the default rather than poisoning the viewport
+    // maths, which would otherwise try to slice an infinite window.
+    const sizeProp = (value: number | undefined, fallback: number, floor: number) =>
+        (typeof value === 'number' && Number.isFinite(value))
+            ? Math.max(floor, Math.floor(value))
+            : fallback;
+    const getHeight = () => sizeProp(props.height, 10, 1);
     const identityOf = (row: any, index: number) =>
         props.identity ? props.identity(row) : String(index);
 
@@ -171,8 +178,11 @@ export const DataTable = component<
         // One column goes to the cursor gutter; a boxed table also gives up its
         // border and inner padding.
         const chrome = 1 + (variant === 'boxed' ? 4 : 0);
-        const width = props.width
-            || Math.max(12, getTerminalSize().columns - chrome);
+        const width = sizeProp(
+            props.width,
+            Math.max(12, getTerminalSize().columns - chrome),
+            1,
+        );
 
         const cursor = Math.min(cursorOf(), Math.max(0, total - 1));
         const offset = scrollWindow(total, cursor, height, state.offset);
