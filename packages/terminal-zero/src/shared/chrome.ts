@@ -33,12 +33,10 @@ export interface BoxChromeOptions {
      * is to the renderer.
      *
      * Every style costs the same, so this union is about *accepting* input,
-     * not distinguishing styles. It is deliberately a superset of the JSX
-     * `border` prop's type: it also takes `boolean`, and `'bold'`, which
-     * `drawBox` honours as an alias of `'thick'` but the intrinsic element's
-     * typing does not yet advertise (see #113).
+     * not distinguishing styles; `boolean` is here because callers derive it
+     * from a variant (`border: boxed`) as often as they forward it.
      */
-    border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'bold' | 'none';
+    border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'none';
     /**
      * The `padX` prop: cells of padding on *each* side. Truncated to a
      * whole number of cells, because `' '.repeat()` truncates too. Inert

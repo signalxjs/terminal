@@ -235,13 +235,20 @@ function flushRender() {
 
     if (mode === 'fullscreen') {
         const cols = target.columns;
+        const rows = target.rows;
         const bg = canvasEnabled && screenBgColor ? resolveBg(screenBgColor) : '';
-        const lines = prepareLines();
+        // Clamp to the viewport. An over-tall frame would scroll the alt
+        // buffer, and the next frame's [H then lands on a row that is no
+        // longer the frame's first — every following row shears, permanently.
+        // Unlike inline (which keeps the bottom, the live end of a transcript)
+        // fullscreen keeps the TOP: a dashboard's title and tabs are up there,
+        // and dropping them to preserve the footer is the wrong half to save.
+        let lines = prepareLines();
+        if (lines.length > rows) lines = lines.slice(0, rows);
         let out = '\x1B[H';
         if (bg || (canvasEnabled && screenFgColor)) {
             out += lines.join('\n');
             // App owns the screen: fill the empty rows below with the theme bg.
-            const rows = target.rows;
             for (let i = lines.length; i < rows; i++) {
                 out += '\n' + bg + ' '.repeat(cols) + '\x1b[0m';
             }
@@ -584,9 +591,12 @@ function drawBox(contentLines: string[], opts: DrawBoxOptions): string[] {
             result[i] += shadowBlock;
         }
 
-        // Add bottom shadow line
-        // Width is boxWidth (width + 2)
-        const bottomShadow = ' ' + shadowBlock.repeat(width + 2);
+        // Add bottom shadow line, offset one column right of the box's left
+        // edge. Sized from boxInnerWidth, not the content width — a label
+        // longer than the content widens the box (see boxInnerWidth above),
+        // and sizing this row from `width` left it short by the difference,
+        // so the shadow read as an L missing its corner.
+        const bottomShadow = ' ' + shadowBlock.repeat(boxInnerWidth + 2);
         result.push(bottomShadow);
     }
 
@@ -600,7 +610,7 @@ function getBorderChars(style: string) {
     if (style === 'rounded') {
         return { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' };
     }
-    if (style === 'thick' || style === 'bold') {
+    if (style === 'thick') {
         return { tl: '┏', tr: '┓', bl: '┗', br: '┛', h: '━', v: '┃' };
     }
     // Default single

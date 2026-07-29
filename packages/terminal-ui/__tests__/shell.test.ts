@@ -216,25 +216,35 @@ describe('Shell', () => {
         expect(pane().height).toBeGreaterThanOrEqual(1);
     });
 
-    it('lets an over-rendering body overflow rather than clipping it silently', async () => {
-        // The documented semantics: pane is a budget, not a reservation. Shell
-        // cannot measure an opaque child, so it must not pretend it clipped.
+    it('costs an over-rendering body the bottom of the frame, not the whole screen', async () => {
+        // The pane is still a budget, not a reservation: Shell cannot measure
+        // an opaque child, so it does not pretend to clip, and a body that
+        // over-renders still pushes the footer off. What it no longer does is
+        // shear the dashboard — the renderer clamps a fullscreen frame to the
+        // viewport, so the cost is bounded to the rows that fell off the end.
         const cap = captureOutput({ columns: 60, rows: 24 });
         syncTerminalSize();
         const body = (pane: ShellPane) => {
-            const lines = fitLines([], { width: pane.width, height: pane.height + 5 });
+            const lines = fitLines(['BODY'], { width: pane.width, height: pane.height + 5 });
             return lines.flatMap((line, i) => (
                 i > 0 ? [jsx('br', {}), jsx('text', { children: line })]
                       : [jsx('text', { children: line })]
             ));
         };
         unmount = renderTerminal(
-            jsx(Shell, { title: 'sigx', tabs: TABS, children: body }),
+            jsx(Shell, {
+                title: 'sigx', tabs: TABS, children: body,
+                status: [{ key: 'q', label: 'quit' }],
+            }),
             { patchConsole: false, mode: 'fullscreen' },
         ).unmount;
         await settle();
 
-        expect(frameLines(cap)).toHaveLength(29);
+        const lines = frameLines(cap);
+        expect(lines).toHaveLength(24);          // never taller than the terminal
+        expect(lines[0]).toContain('┏');          // the top — title bar — survives
+        expect(lines.some((l) => l.includes('BODY'))).toBe(true);
+        expect(lines.some((l) => l.includes('quit'))).toBe(false); // the footer is what it cost
     });
 
     it('marks the active tab from the model without owning it', async () => {
