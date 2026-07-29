@@ -159,16 +159,20 @@ export const DataTable = component<
     };
 
     let keyCleanup: (() => void) | null = null;
+    let readyTimer: ReturnType<typeof setTimeout> | null = null;
 
     onMounted(() => {
         registerFocusable(id);
         if (props.autofocus) focus(id);
         keyCleanup = onKey(handleKey);
-        setTimeout(() => { isReady = true; }, READY_DELAY_MS);
+        readyTimer = setTimeout(() => { isReady = true; }, READY_DELAY_MS);
     });
 
     onUnmounted(() => {
         if (keyCleanup) keyCleanup();
+        // Cleared, not left to fire: an unmount inside the debounce window
+        // would otherwise wake up later and write to state nobody is painting.
+        if (readyTimer) clearTimeout(readyTimer);
         unregisterFocusable(id);
     });
 

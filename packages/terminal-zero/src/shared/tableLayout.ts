@@ -119,7 +119,13 @@ function fitWidths<T>(
 
     if (total > available) {
         for (let index = widths.length - 1; index >= 0 && total > available; index--) {
-            const floor = columns[index]!.min ?? Math.min(widths[index]!, 3);
+            // A declared `min` is still a width: clamped at 0, since a negative
+            // floor would let the column shrink past nothing and hand `fitCell`
+            // a negative width, which silently empties the cell.
+            const declared = columns[index]!.min;
+            const floor = declared === undefined || !Number.isFinite(declared)
+                ? Math.min(widths[index]!, 3)
+                : Math.max(0, Math.floor(declared));
             const give = Math.min(Math.max(0, widths[index]! - floor), total - available);
             if (give > 0) {
                 widths[index]! -= give;

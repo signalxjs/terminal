@@ -77,6 +77,17 @@ describe('layoutTable', () => {
         expect(table.widths[1]).toBe(6);
     });
 
+    it('never lets a column shrink past nothing', () => {
+        // A negative `min` would give the column a negative width, and
+        // `fitCell` empties anything below 1 — a silently blank column.
+        const silly: TableColumn<Row>[] = [
+            { key: 'id', header: 'ID', value: (r) => r.id },
+            { key: 'n', header: 'N', value: (r) => String(r.n), min: -10 },
+        ];
+        const table = layoutTable(silly, [{ id: 'aaaaaaaaaa', n: 123456789 }], { width: 4 });
+        for (const w of table.widths) expect(w).toBeGreaterThanOrEqual(0);
+    });
+
     it('hands surplus width only to a column that asked for it', () => {
         const flexed: TableColumn<Row>[] = [
             { key: 'id', header: 'ID', value: (r) => r.id, flex: true },
