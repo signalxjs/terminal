@@ -4,12 +4,12 @@
 //
 //     node --import tsx src/main.tsx     (needs a real terminal)
 //
-// Keys: ←/→ or h/l switch tabs (when the tab strip is focused), Tab moves
-// focus, r pushes a fake reload, q / Ctrl+C quits (terminal restored).
+// Keys: ←/→ or 1-3 switch tabs, Tab moves focus, r pushes a fake reload,
+// q / Ctrl+C quits (terminal restored).
 import {
     defineApp, component, signal, onMounted, onUnmounted, terminalMount, exitTerminal,
-    Tabs, Table, KeyHints, QRCode, LogView, Row, Gradient, Badge,
-    createLogStore, onKey, getTerminalSize, Text, Spacer, Col } from '@sigx/terminal';
+    Table, QRCode, LogView, Row, Badge, Shell, boxChrome,
+    createLogStore, onKey, Text, Spacer, Col } from '@sigx/terminal';
 
 const BUNDLE_URL = 'http://192.168.1.10:8788/main.lynx.bundle?v=demo';
 
@@ -20,6 +20,12 @@ const FAKE_LOGS = [
     '📱 android #1  WARN  slow request: /api/feed (2.1s)',
     '📱 ios #0  LOG  state hydrated',
     '📱 android #1  LOG  image cache warm',
+];
+
+const TABS = [
+    { label: 'Devices', value: 'devices' },
+    { label: 'Logs', value: 'logs' },
+    { label: 'Connect', value: 'connect' },
 ];
 
 const Dashboard = component(() => {
@@ -35,6 +41,16 @@ const Dashboard = component(() => {
             line++;
         }, 600);
         offKey = onKey((key) => {
+            // `Shell` places the tab strip but handles no keys, so switching is
+            // the app's — which is the point: swap these for `gt`/`j`/`k` and
+            // nothing about the frame has to change.
+            const move = (delta: number) => {
+                const i = TABS.findIndex((t) => t.value === tab.value);
+                tab.value = TABS[(i + delta + TABS.length) % TABS.length].value;
+            };
+            if (key === '\x1B[D') move(-1);
+            if (key === '\x1B[C') move(1);
+            if (key >= '1' && key <= String(TABS.length)) tab.value = TABS[Number(key) - 1].value;
             if (key === 'r') store.push('⚡ reload sent to 2 devices\n');
             if (key === 'q') {
                 exitTerminal();
@@ -47,60 +63,68 @@ const Dashboard = component(() => {
         offKey?.();
     });
 
-    return () => {
-        const logHeight = Math.max(6, getTerminalSize().rows - 12);
-        return (
-            <Col>
-                <Col><Gradient text="sigx dev · my-lynx-app" preset="sigx" /></Col>
-                <Col><Text color="dim">{BUNDLE_URL}</Text></Col>
-                <Spacer size={1} />
-                <Tabs
-                    model={tab}
-                    autofocus
-                    options={[
-                        { label: 'Devices', value: 'devices' },
-                        { label: 'Logs', value: 'logs' },
-                        { label: 'Connect', value: 'connect' },
-                    ]}
-                />
-                <Spacer size={1} />
-                {tab.value === 'devices' && (
-                    <Row gap={4}>
-                        <QRCode text={BUNDLE_URL} />
-                        <Col>
-                            <Table
-                                columns={['Device', 'Platform', 'Status']}
-                                rows={[
-                                    ['iPhone 15', 'ios', 'connected'],
-                                    ['Pixel 8', 'android', 'connected'],
-                                    ['iPhone SE (sim)', 'ios', 'booted'],
-                                ]}
-                            />
-                            <Spacer size={1} />
-                            <Badge label="2 devices live" variant="solid" color="success" />
-                        </Col>
-                    </Row>
-                )}
-                {tab.value === 'logs' && (
-                    <LogView store={store} height={logHeight} title=" device logs " />
-                )}
-                {tab.value === 'connect' && (
+    return () => (
+        <Shell
+            header="gradient"
+            title="sigx dev · my-lynx-app"
+            subtitle={BUNDLE_URL}
+            tabs={TABS}
+            activeTab={tab.value}
+            body="plain"
+            hints={[
+                { key: '←/→', label: 'tabs' },
+                { key: 'Tab', label: 'focus' },
+                { key: 'r', label: 'reload' },
+                { key: '↑/↓', label: 'scroll logs' },
+                { key: 'q', label: 'quit' },
+            ]}
+        >
+            {(pane) => {
+                // No `rows - 12` any more: the frame reports what it left.
+                // LogView still draws its own border and follow/paused footer,
+                // so the viewport is the pane minus that — the last hand-count
+                // here, and one that goes away when LogView takes a pane
+                // directly.
+                const logHeight = Math.max(1, pane.height - boxChrome({ border: true }).rows - 1);
+                return (
                     <Col>
-                        <Text color="dim">Scan with sigx-lynx-go:</Text>
-                        <QRCode text={BUNDLE_URL} />
+                        {tab.value === 'devices' && (
+                            <Row gap={4}>
+                                <QRCode text={BUNDLE_URL} />
+                                <Col>
+                                    <Table
+                                        columns={['Device', 'Platform', 'Status']}
+                                        rows={[
+                                            ['iPhone 15', 'ios', 'connected'],
+                                            ['Pixel 8', 'android', 'connected'],
+                                            ['iPhone SE (sim)', 'ios', 'booted'],
+                                        ]}
+                                    />
+                                    <Spacer size={1} />
+                                    <Badge label="2 devices live" variant="solid" color="success" />
+                                </Col>
+                            </Row>
+                        )}
+                        {tab.value === 'logs' && (
+                            <LogView
+                                store={store}
+                                width={pane.width}
+                                height={logHeight}
+                                title=" device logs "
+                                autofocus
+                            />
+                        )}
+                        {tab.value === 'connect' && (
+                            <Col>
+                                <Text color="dim">Scan with sigx-lynx-go:</Text>
+                                <QRCode text={BUNDLE_URL} />
+                            </Col>
+                        )}
                     </Col>
-                )}
-                <Spacer size={1} />
-                <KeyHints hints={[
-                    { key: '←/→', label: 'tabs' },
-                    { key: 'Tab', label: 'focus' },
-                    { key: 'r', label: 'reload' },
-                    { key: '↑/↓', label: 'scroll logs' },
-                    { key: 'q', label: 'quit' },
-                ]} />
-            </Col>
-        );
-    };
+                );
+            }}
+        </Shell>
+    );
 }, { name: 'Dashboard' });
 
 if (!process.stdin.isTTY) {

@@ -1,0 +1,182 @@
+/** @jsxImportSource @sigx/runtime-core */
+import { component, type Define } from '@sigx/runtime-core';
+import { boxChrome, getTerminalSize, resolveColor } from '@sigx/terminal-zero';
+import { Gradient } from '../fx/Gradient';
+import { KeyHints, type KeyHint } from '../navigation/KeyHints';
+import { StatusBar, type StatusItem } from '../navigation/StatusBar';
+import type { TabOption } from '../navigation/Tabs';
+
+/** The area left for a `<Shell>` body once the frame has drawn its chrome. */
+export interface ShellPane {
+    /** Columns available to the body, inside the frame's borders and padding. */
+    width: number;
+    /** Rows available to the body. */
+    height: number;
+}
+
+/** One row of chrome-or-more, carrying what it costs. */
+interface Segment {
+    rows: number;
+    node: unknown;
+}
+
+/**
+ * A dashboard frame with exactly one job: own the chrome and tell the body
+ * what is left.
+ *
+ * ```tsx
+ * <Shell title="sigx actors" version="0.1.0" tabs={TABS} activeTab={tab.value} status={STATUS}>
+ *     {(pane) => <DataTable width={pane.width} height={pane.height} columns={COLS} rows={rows} />}
+ * </Shell>
+ * ```
+ *
+ * The body is a scoped slot receiving `{ width, height }` — the content box
+ * inside the frame. That is the whole point of the component: `getTerminalSize()`
+ * reports the *terminal*, and what a body needs is that minus whatever chrome
+ * the frame drew, which is a private detail of the frame's own layout. Without
+ * this, every caller hardcodes a guess (`rows - 12`, `rows - 13`, `- 4`) that is
+ * wrong the moment the frame changes shape — and since the renderer never clamps
+ * a fullscreen frame, an over-tall one scrolls the alt screen and shears the
+ * whole dashboard.
+ *
+ * ## A budget, not a reservation
+ *
+ * `pane` is the **maximum** a body may emit, not an enforced box. The renderer's
+ * layout is content-driven end to end — there is no clipping primitive and no
+ * way to measure an opaque child — so `<Shell>` cannot hold the box on the
+ * body's behalf. A body that emits fewer rows leaves the frame short; one that
+ * emits more shears it. Comply by fitting content to the pane, which
+ * `fitLines(lines, pane)` (`@sigx/terminal-zero`) does in one call.
+ *
+ * ## What this deliberately does not do
+ *
+ * No state, no key handling, no lifecycle. Tab switching, a command palette, a
+ * view stack, single-key shortcuts, exit ordering and the non-TTY fallback are
+ * all a few lines in the app, and every app wants to vary them — bundling them
+ * is what turns a frame into a cage. `activeTab` is a plain value rather than a
+ * `Model` precisely because nothing here ever writes it: it marks the current
+ * chip, and the app owns the signal and switches the body itself.
+ */
+export const Shell = component<
+    Define.Prop<'title', string, false> &
+    Define.Prop<'version', string, false> &
+    Define.Prop<'subtitle', string, false> &
+    Define.Prop<'header', 'boxed' | 'plain' | 'gradient', false> &
+    Define.Prop<'tabs', TabOption[], false> &
+    Define.Prop<'activeTab', string, false> &
+    Define.Prop<'body', 'boxed' | 'plain', false> &
+    Define.Prop<'bodyTitle', string, false> &
+    Define.Prop<'status', StatusItem[], false> &
+    Define.Prop<'hints', KeyHint[], false> &
+    Define.Slot<'default', ShellPane>
+>(({ props, slots }) => {
+    return () => {
+        // Reactive read — resizes re-render the frame, and the pane with it.
+        const { columns, rows } = getTerminalSize();
+
+        // Chrome is built as segments that each carry their own row cost, and
+        // the pane is what is left after summing them. Deriving the height from
+        // a separate constant beside the JSX is exactly the drift this
+        // component exists to remove: a row can only be spent by pushing a
+        // segment, and a segment always declares what it costs.
+        const above: Segment[] = [];
+        const below: Segment[] = [];
+
+        const headerStyle = props.header ?? 'boxed';
+        const title = props.title ?? '';
+        const heading = props.version ? `${title} v${props.version}` : title;
+
+        if (title) {
+            if (headerStyle === 'boxed') {
+                above.push({
+                    rows: 3, // 2 border + 1 content
+                    node: (
+                        <box border="thick" borderColor={resolveColor('accent')} padX={1}>
+                            <text color={resolveColor('accent')}>{heading}</text>
+                        </box>
+                    ),
+                });
+            } else if (headerStyle === 'gradient') {
+                above.push({ rows: 1, node: <Gradient text={heading} preset="sigx" /> });
+            } else {
+                above.push({
+                    rows: 1,
+                    node: <box><text color={resolveColor('accent')}>{heading}</text></box>,
+                });
+            }
+        }
+
+        if (props.subtitle) {
+            above.push({
+                rows: 1,
+                node: <box><text color={resolveColor('dim')}>{props.subtitle}</text></box>,
+            });
+        }
+
+        // A one-tab strip says nothing, so it is not drawn — and the row it
+        // would have cost goes to the body.
+        const tabs = props.tabs ?? [];
+        if (tabs.length > 1) {
+            const current = props.activeTab ?? tabs[0]?.value;
+            above.push({
+                rows: 1,
+                node: (
+                    <box>
+                        {tabs.map((tab, i) => {
+                            const on = tab.value === current;
+                            return (
+                                <text
+                                    backgroundColor={resolveColor(on ? 'accent' : 'accentSoft')}
+                                    color={resolveColor(on ? 'accentText' : 'dim')}
+                                > {i + 1} {tab.label} </text>
+                            );
+                        })}
+                    </box>
+                ),
+            });
+        }
+
+        if (props.status) below.push({ rows: 1, node: <StatusBar items={props.status} /> });
+        if (props.hints) below.push({ rows: 1, node: <KeyHints hints={props.hints} /> });
+
+        // A `<Spacer size={0}>` still renders one row, so a blank line has to be
+        // omitted rather than sized away.
+        if (above.length) above.push({ rows: 1, node: <box><text> </text></box> });
+        if (below.length) below.unshift({ rows: 1, node: <box><text> </text></box> });
+
+        const boxed = (props.body ?? 'boxed') === 'boxed';
+        const bodyChrome = boxChrome({ border: boxed, padX: boxed ? 1 : 0, dropShadow: boxed });
+
+        const spent = [...above, ...below].reduce((n, s) => n + s.rows, bodyChrome.rows);
+        const pane: ShellPane = {
+            width: Math.max(1, columns - bodyChrome.cols),
+            height: Math.max(1, rows - spent),
+        };
+
+        const content = slots.default?.(pane);
+
+        return (
+            <box>
+                {above.map((s) => s.node)}
+                {boxed
+                    ? (
+                        <box
+                            border="rounded"
+                            borderColor={resolveColor('line')}
+                            label={props.bodyTitle}
+                            labelColor={resolveColor('accent')}
+                            padX={1}
+                            dropShadow
+                            shadowColor={resolveColor('shadow')}
+                        >
+                            {content}
+                        </box>
+                    )
+                    : <box>{content}</box>}
+                {below.map((s) => s.node)}
+            </box>
+        );
+    };
+}, { name: 'Shell' });
+
+export default Shell;
