@@ -1,7 +1,15 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, type Define } from '@sigx/runtime-core';
-import { resolveColor, getTerminalSize, truncateToWidth } from '@sigx/terminal-zero';
+import { resolveColor, getTerminalSize, truncateToWidth, boxChrome } from '@sigx/terminal-zero';
 import type { LogStore } from './logStore';
+
+/**
+ * What each variant spends on chrome, per row. The `panel` variant pays for the
+ * box it draws — derived, so it tracks the box's props — while `bar` pays for
+ * its two-cell `│ ` gutter and `plain` pays nothing.
+ */
+const PANEL_CHROME = boxChrome({ border: 'rounded', padX: 1 });
+const BAR_GUTTER = 2;
 
 /**
  * Streaming log tail: the last `height` lines of a stream, dimmed, in
@@ -42,7 +50,7 @@ export const LogPanel = component<
             return (
                 <box border="rounded" borderColor={borderColor} label={props.title} labelColor={resolveColor('accent')} padX={1}>
                     {src.flatMap((line, i) => {
-                        const row = <text color={textColor}>{truncateToWidth(line, width - 4)}</text>;
+                        const row = <text color={textColor}>{truncateToWidth(line, width - PANEL_CHROME.cols)}</text>;
                         return i > 0 ? [<br />, row] : [row];
                     })}
                     {src.length === 0 && <text color={resolveColor('faint')}>…</text>}
@@ -50,7 +58,7 @@ export const LogPanel = component<
             );
         }
 
-        const gutter = variant === 'bar' ? 2 : 0;
+        const gutter = variant === 'bar' ? BAR_GUTTER : 0;
         const rows = src.flatMap((line, i) => {
             const row = (
                 <text>

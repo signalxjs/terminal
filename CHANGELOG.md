@@ -8,9 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **`LogView`, `LogPanel` and `DataTable` derive their box chrome instead of restating it** (#114). Three `- 4` literals commented "rounded border (2) + padX (2)" became `boxChrome({ border: 'rounded', padX: 1 })`, computed from the same values passed to the `<box>` — so a component whose box changes shape can no longer keep subtracting the old number. `LogView`'s hand-rolled pad-and-truncate loop is now `fitLines(window, { width, height })`, the helper generalised out of it. No layout change: the existing geometry assertions pass untouched.
+
+  Two nearby constants were deliberately **not** converted, because they are not box chrome and `boxChrome` would misdescribe them: `LogPanel`'s `bar` variant pays 2 cells for its `│ ` gutter, and `TextArea` pays 2 for its `> ` prefix — neither component draws a border. They are named constants now instead of bare literals.
+
 - **Breaking (tiny): `<box border="bold">` is no longer a thing** (#113). `drawBox` quietly accepted `'bold'` as an alias of `'thick'` — a second name for a style that already had one, which the intrinsic element's typing never advertised. So it rendered correctly and failed to typecheck, and nothing could reach it without a cast. The alias is removed; `'bold'` now takes the same unknown-style fallback as any other typo (a `single` border). If you were casting to use it, use `'thick'`.
 
 ### Fixed
+
+- **`LogView` marks a log line it had to cut** (#114). Lines wider than the viewport were truncated silently, so a cut message read as a complete one — with no horizontal scrolling, nothing else signalled that anything had been dropped. They now end in `…`, matching how the rest of the library treats truncation. Visible change to any log line longer than the panel.
 
 - **A fullscreen frame taller than the terminal no longer shears the screen** (#111). `flushRender` clamped an *inline* frame to the viewport but only ever *padded up to* it in fullscreen, so an over-tall frame was written whole. The alt buffer then scrolls, the next frame's `[H` no longer lands on the frame's first row, and every row after it is off by the overflow — the dashboard shears and stays sheared until something forces a full clear. The failure was spectacular and its cause invisible: it reads as a renderer bug rather than "your body emitted three rows too many". Fullscreen output is now clipped to `target.rows` in both the plain and themed-canvas paths, and re-clipped on resize. Unlike inline — which keeps the *bottom*, the live end of a transcript — fullscreen keeps the **top**, because a dashboard's title bar and tab strip are up there and dropping them to preserve a footer saves the wrong half. Short frames are still padded out to the full height, so an app that owns the screen still fills it.
 

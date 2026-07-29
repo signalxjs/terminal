@@ -2,9 +2,12 @@
 import { component, onMounted, onUnmounted, signal, type Define } from '@sigx/runtime-core';
 import {
     onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor,
-    getTerminalSize, truncateToWidth, displayWidth, READY_DELAY_MS,
+    getTerminalSize, boxChrome, fitLines, READY_DELAY_MS,
 } from '@sigx/terminal-zero';
 import type { LogStore } from './logStore';
+
+/** What the viewport box below spends, derived from the props it is given. */
+const VIEWPORT_CHROME = boxChrome({ border: 'rounded', padX: 1 });
 
 /**
  * Focusable, scrollable log viewer — the "logs tab" of a persistent dev TUI.
@@ -116,15 +119,13 @@ export const LogView = component<
         const end = total - off;
         const start = Math.max(0, end - height);
 
-        // The box sizes itself to its widest line, so pad every line to the
+        // The box sizes itself to its widest line, so fit every line to the
         // interior width — the viewport then spans the full configured width
-        // (terminal width by default) instead of hugging its content.
-        const inner = Math.max(1, width - 4); // rounded border (2) + padX (2)
-        const window = all.slice(start, end).map((line) => {
-            const cut = truncateToWidth(line, inner);
-            return cut + ' '.repeat(Math.max(0, inner - displayWidth(cut)));
-        });
-        while (window.length < height) window.push(' '.repeat(inner)); // stable frame height
+        // instead of hugging its content, and short streams keep a stable
+        // frame height. `boxChrome` derives what the box below spends, so the
+        // two cannot drift apart.
+        const inner = Math.max(1, width - VIEWPORT_CHROME.cols);
+        const window = fitLines(all.slice(start, end), { width: inner, height });
 
         const rows = window.flatMap((line, i) => {
             const node = <text color={resolveColor('dim')}>{line}</text>;

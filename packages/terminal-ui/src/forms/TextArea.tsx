@@ -13,6 +13,12 @@ const BS = String.fromCharCode(8);
 const ESC = String.fromCharCode(27);
 
 /**
+ * Cells the `> ` / `  ` row prefix takes from the text. Not box chrome — this
+ * component draws no border — so it is a gutter width, not a `boxChrome` term.
+ */
+const PREFIX_COLS = 2;
+
+/**
  * Growing multi-line text input — the Claude-style prompt box. Soft-wraps to
  * `width`, grows from one row up to `maxRows` (then scrolls internally,
  * keeping the cursor visible), with a movable block cursor.
@@ -46,7 +52,7 @@ export const TextArea = component<
     const state = signal({ cursor: 0, goalCol: -1 });
 
     const getValue = () => props.model?.value ?? '';
-    const innerWidth = () => Math.max(4, (props.width || Math.max(20, getTerminalSize().columns - 4)) - 2);
+    const innerWidth = () => Math.max(4, (props.width || Math.max(20, getTerminalSize().columns - 4)) - PREFIX_COLS);
 
     const buf = (): TextBufferState => {
         const text = getValue();
