@@ -4,6 +4,7 @@ import { FeedbackDemo } from './demos/feedback';
 import { NavigationDemo } from './demos/navigation';
 import { LayoutDemo } from './demos/layout';
 import { DataDemo } from './demos/data';
+import { MetricsDemo } from './demos/metrics';
 import { FxDemo } from './demos/fx';
 import { TasksDemo } from './demos/tasks';
 
@@ -22,6 +23,7 @@ export const demos: Demo[] = [
     { id: 'navigation', title: 'Navigation', component: NavigationDemo },
     { id: 'layout', title: 'Layout', component: LayoutDemo },
     { id: 'data', title: 'Data', component: DataDemo },
+    { id: 'metrics', title: 'Metrics', component: MetricsDemo },
     { id: 'fx', title: 'FX', component: FxDemo },
     { id: 'tasks', title: 'Tasks', component: TasksDemo },
 ];
