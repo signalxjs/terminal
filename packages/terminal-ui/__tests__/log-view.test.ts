@@ -147,6 +147,22 @@ describe('LogView (scrollable log viewer)', () => {
         }
     });
 
+    it('marks a line it had to cut, and keeps the frame width exact', async () => {
+        // A log line wider than the viewport used to be cut silently, so a
+        // truncated message read as a complete one — the same failure the rest
+        // of the library marks with `…`. There is no horizontal scroll here, so
+        // the marker is the only signal that anything was dropped.
+        const store = createLogStore({ passthrough: false });
+        store.push('x'.repeat(200) + '\n');
+        const cap = await mount(store, 2);
+
+        const interior = cap.output().split('\n').filter((l) => l.includes('│'));
+        const row = interior.find((l) => l.includes('x'))!;
+        expect(row).toContain('…');
+        // …and the cut still lands on the interior width, not one cell off.
+        expect(row.indexOf('│', row.indexOf('│') + 1)).toBeGreaterThan(50);
+    });
+
     it('renders a stable frame height with fewer lines than the viewport', async () => {
         const store = feed(2);
         const cap = await mount(store, 6);
