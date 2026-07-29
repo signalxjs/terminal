@@ -29,9 +29,11 @@ export interface BoxChromeOptions {
     /**
      * The box's `border` prop, passed through as-is — a style name or a plain
      * boolean. `'none'` costs nothing, matching the renderer, so a caller can
-     * forward a variable border style without special-casing it.
+     * forward a variable border style without special-casing it. (`'bold'` is
+     * the renderer's alias for `'thick'`; every style costs the same, so the
+     * union exists to accept the prop, not to distinguish the styles.)
      */
-    border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'none';
+    border?: boolean | 'single' | 'double' | 'rounded' | 'thick' | 'bold' | 'none';
     /**
      * The `padX` prop: cells of padding on *each* side. Truncated to a
      * whole number of cells, because `' '.repeat()` truncates too. Inert

@@ -50,7 +50,9 @@ const Dashboard = component(() => {
             };
             if (key === '\x1B[D') move(-1);
             if (key === '\x1B[C') move(1);
-            if (key >= '1' && key <= String(TABS.length)) tab.value = TABS[Number(key) - 1].value;
+            // Compare as a number, not a string: `'9' <= '10'` is false.
+            const jump = /^[0-9]$/.test(key) ? Number(key) : 0;
+            if (jump >= 1 && jump <= TABS.length) tab.value = TABS[jump - 1].value;
             if (key === 'r') store.push('⚡ reload sent to 2 devices\n');
             if (key === 'q') {
                 exitTerminal();
