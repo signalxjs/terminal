@@ -2,7 +2,7 @@
 import { component, onMounted, onUnmounted, signal, type Define } from '@sigx/runtime-core';
 import {
     onKey, registerFocusable, unregisterFocusable, focusState, focus, resolveColor,
-    getTerminalSize, hexToSGR, displayWidth, READY_DELAY_MS, GLYPHS,
+    getTerminalSize, hexToSGR, displayWidth, READY_DELAY_MS, GLYPHS, boxChrome,
     layoutTable, scrollWindow, moveCursor, sortRows, columnComparator,
     isUp, isDown, isLeft, isRight, isEnter, isPageUp, isPageDown, isHome, isEnd,
     type TableColumn,
@@ -183,9 +183,11 @@ export const DataTable = component<
         const focused = isFocused();
         const variant = props.variant || 'ruled';
         const height = getHeight();
-        // One column goes to the cursor gutter; a boxed table also gives up its
-        // border and inner padding.
-        const chrome = 1 + (variant === 'boxed' ? 4 : 0);
+        // One column goes to the cursor gutter; a boxed table also gives up
+        // whatever its own box spends, which `boxChrome` derives rather than
+        // restating as a constant that goes stale when the box changes shape.
+        const boxed = variant === 'boxed';
+        const chrome = 1 + boxChrome({ border: boxed, padX: boxed ? 1 : 0 }).cols;
         const width = sizeProp(
             props.width,
             Math.max(12, getTerminalSize().columns - chrome),

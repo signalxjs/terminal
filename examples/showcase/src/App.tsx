@@ -1,5 +1,5 @@
-import { component, signal, onMounted, onUnmounted, Text, Spacer, Col } from '@sigx/terminal';
-import { onKey, StatusBar, Box, setTheme, listThemes } from '@sigx/terminal';
+import { component, signal, onMounted, onUnmounted } from '@sigx/terminal';
+import { onKey, Shell, setTheme, listThemes } from '@sigx/terminal';
 import { demos } from './catalog';
 
 export const App = component(() => {
@@ -39,35 +39,29 @@ export const App = component(() => {
         const active = demos[state.demo];
         const Demo = active.component;
 
-        // Demo selector strip — segmented tabs filled by state.
-        const strip = demos.map((d, i) => {
-            const on = i === state.demo;
-            return (
-                <Text bg={on ? 'accent' : 'accentSoft'} color={on ? 'accentText' : 'dim'}>
-                    {' '}{String(i + 1)} {d.title}{' '}
-                </Text>
-            );
-        });
-
+        // `Shell` places the chrome and reports what is left; the app keeps its
+        // own keys and its own idea of which demo is current.
         return (
-            <Col>
-                <Box border="thick" borderColor="accent" padX={1}>
-                    <Text color="accent">SigX Terminal — Component Showcase</Text>
-                </Box>
-                <Col>{strip}</Col>
-                <Spacer size={1} />
-                <Box border="rounded" borderColor="line" label={active.title} labelColor="accent" padX={1} dropShadow={true}>
-                    <Demo />
-                </Box>
-                <Spacer size={1} />
-                <StatusBar items={[
+            <Shell
+                title="SigX Terminal — Component Showcase"
+                tabs={demos.map((d) => ({ label: d.title, value: d.id }))}
+                activeTab={active.id}
+                bodyTitle={active.title}
+                status={[
                     { key: '[ ]', label: 'prev / next' },
                     { key: `1-${demos.length}`, label: 'jump' },
                     { key: 'Tab', label: 'focus' },
                     { key: 't', label: `theme: ${state.theme}` },
                     { key: '^C', label: 'quit' },
-                ]} />
-            </Col>
+                ]}
+            >
+                {/*
+                  * The demos size themselves, so this one takes the pane as a
+                  * budget it does not fill — see the dev-dashboard example for
+                  * a body that spends its pane exactly.
+                  */}
+                {() => <Demo />}
+            </Shell>
         );
     };
 }, { name: 'App' });

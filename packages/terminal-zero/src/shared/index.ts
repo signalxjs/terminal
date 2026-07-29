@@ -69,6 +69,7 @@ export * from './glyphs';
 // layout with a scrolling viewport, and status grids. All pure — the themed
 // components in @sigx/terminal-ui are thin wrappers over these.
 export * from './cells';
+export * from './chrome';
 export * from './bars';
 export * from './sparkline';
 export * from './tableLayout';
