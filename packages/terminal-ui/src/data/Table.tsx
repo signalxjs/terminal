@@ -1,11 +1,15 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, type Define } from '@sigx/runtime-core';
-import { resolveColor } from '@sigx/terminal-zero';
+import { resolveColor, displayWidth, padCell } from '@sigx/terminal-zero';
 
 /**
  * A simple text grid. Columns are auto-sized to their widest cell; the header
- * is accent-colored and separated from the body by a rule. (Cell widths use
- * `string.length` — adequate for the ASCII data tables usually shown in a TUI.)
+ * is accent-colored and separated from the body by a rule. Widths are measured
+ * in display cells, so a wide glyph (CJK, emoji) counts as the two columns it
+ * occupies and the separators stay in line.
+ *
+ * For anything that needs to scroll, sort or carry a cursor, reach for
+ * `DataTable` — this one is a static grid of strings.
  */
 export const Table = component<
     Define.Prop<"columns", string[], true> &
@@ -16,9 +20,9 @@ export const Table = component<
         const rows = props.rows || [];
 
         const widths = cols.map((c, i) =>
-            Math.max(c.length, ...rows.map(r => (r[i] ?? '').length), 0)
+            rows.reduce((widest, r) => Math.max(widest, displayWidth(r[i] ?? '')), displayWidth(c))
         );
-        const pad = (s: string, w: number) => s + ' '.repeat(Math.max(0, w - s.length));
+        const pad = (s: string, w: number) => padCell(s, w);
 
         const lineColor = resolveColor('line');
         const sep = () => <text color={lineColor}>│</text>;

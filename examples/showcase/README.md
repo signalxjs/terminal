@@ -28,7 +28,7 @@ Or from the repo root: `pnpm showcase`.
 | Key | Action |
 | --- | --- |
 | `]` / `[` | next / previous demo |
-| `1`–`8` | jump straight to a demo |
+| `1`–`9` | jump straight to a demo |
 | `t` / `T` | cycle the active theme (obsidian → nord → gum → paper → classic) |
 | `Tab` / `Shift+Tab` | move focus between controls in the current demo |
 | `Enter` / `Space` | activate the focused control |
@@ -49,7 +49,8 @@ src/
     feedback.tsx    ProgressBar (live), Spinner, Badge variants
     navigation.tsx  Tabs, StatusBar
     layout.tsx      Box, Divider, Spacer, Card
-    data.tsx        Table
+    data.tsx        Table, DataTable (scrolling, sortable, cursor)
+    metrics.tsx     Sparkline, Meter, Trend, BarChart, DetailList, StatusGrid
     fx.tsx          Gradient, Shimmer, Banner, Spinner variants, ProgressBar variants
     tasks.tsx       TaskList, LogPanel, createLogStore (build-pipeline demo)
 ```

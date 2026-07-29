@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Data-dense dashboard components** (#103): `@sigx/terminal-ui` gains a `DataTable` (scrolling viewport, sortable columns, a focusable cursor), a `Sparkline`, a `Meter`, a `Trend` marker, a `BarChart`, a `DetailList` and a `StatusGrid` — all re-exported through `@sigx/terminal`. The layout, scaling and sorting maths is pure and lives in `@sigx/terminal-zero` (`layoutTable`, `scrollWindow`, `moveCursor`, `sortRows`, `columnComparator`, `naturalCompare`, `sparkline`/`sparklineRows`/`renderSparkline`, `meter`/`barCells`/`commonScale`, `fitCell`/`padCell`/`ellipsize`, `statusGrid`), so an app can use it headlessly — `printStatic(sparkline(history))` needs no mount. Designed and originally implemented by [@andtii](https://github.com/andtii), who offered it upstream; the shape here is generalised off its actor-runtime origins, but its judgement calls are kept as the defaults, because they are the valuable part. Namely: a sparkline scales from **zero**, not the series minimum (a flat line at 1000 req/s should not draw as a mountain range — `baseline="min"` opts out); the lowest level is **reserved for a value at the baseline**, so a real 1 req/s never renders as silence; **a gap is not a zero** — `null` draws as `·`, because a counter reset, an unreachable poll and an idle period are three different facts; table columns give up space from the **right**, since the leftmost is nearly always the identity; truncation is **always marked** with `…`; sorting **breaks ties on identity**, so a table re-sorted every poll does not shuffle rows that have not changed; the cursor **clamps** rather than wrapping and the viewport moves **one row** rather than a screenful; and a shared scale is an explicit input to `BarChart` rather than something derived per row, because auto-scaling each bar is exactly what destroys the comparison. Three deliberate departures from the original: widths are measured in **display cells** (`displayWidth`), so wide CJK and emoji cells stay aligned; `Trend` takes a **`polarity`** prop, since `▲` means trouble for latency and good news for throughput and hardcoding either would make the component lie about half a dashboard; and the histogram-shaped `HistogramBars`/`HistogramSnapshot` pair is generalised into `BarChart` over `{ label, value }[]`, with percentile rows becoming three items.
+
+### Fixed
+
+- **`Table` columns stay aligned when a cell contains wide glyphs** (#103): the static `Table` sized its columns with `String.length`, so a CJK ideograph or an emoji — two columns wide in a terminal — was counted as one, and every separator below it drifted. It now measures in display cells like the rest of the renderer. ASCII tables are unaffected. The component previously had no tests at all; it has them now.
+
 ## [0.9.0] - 2026-07-23
 
 ### Changed

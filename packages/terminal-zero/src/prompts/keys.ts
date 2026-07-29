@@ -19,5 +19,10 @@ export const isUp = (key: string): boolean => key === ESC + '[A';
 export const isDown = (key: string): boolean => key === ESC + '[B';
 export const isRight = (key: string): boolean => key === ESC + '[C';
 export const isLeft = (key: string): boolean => key === ESC + '[D';
+export const isPageUp = (key: string): boolean => key === ESC + '[5~';
+export const isPageDown = (key: string): boolean => key === ESC + '[6~';
+/** Home and End each have two encodings in common use; accept both. */
+export const isHome = (key: string): boolean => key === ESC + '[H' || key === ESC + '[1~';
+export const isEnd = (key: string): boolean => key === ESC + '[F' || key === ESC + '[4~';
 /** A single printable character (what a text field appends). */
 export const isPrintable = (key: string): boolean => key.length === 1 && key >= ' ' && key !== DEL;
