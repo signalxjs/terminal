@@ -1,6 +1,6 @@
 /** @jsxImportSource @sigx/runtime-core */
 import { component, type Define } from '@sigx/runtime-core';
-import { boxChrome, getTerminalSize, resolveColor } from '@sigx/terminal-zero';
+import { boxChrome, ellipsize, getTerminalSize, resolveColor } from '@sigx/terminal-zero';
 import { Gradient } from '../fx/Gradient';
 import { KeyHints, type KeyHint } from '../navigation/KeyHints';
 import { StatusBar, type StatusItem } from '../navigation/StatusBar';
@@ -84,32 +84,40 @@ export const Shell = component<
 
         const headerStyle = props.header ?? 'boxed';
         const title = props.title ?? '';
-        const heading = props.version ? `${title} v${props.version}` : title;
+        const raw = props.version ? `${title} v${props.version}` : title;
 
+        // Chrome text is fitted to what it has room for. The renderer already
+        // truncates every painted line to the terminal width, so an over-long
+        // heading cannot wrap and cannot break the row accounting — but it
+        // would be cut mid-word with no sign it had been. Marking the cut is
+        // the same rule the rest of the library follows.
         if (title) {
             if (headerStyle === 'boxed') {
+                const inner = columns - boxChrome({ border: true, padX: 1 }).cols;
                 above.push({
                     rows: 3, // 2 border + 1 content
                     node: (
                         <box border="thick" borderColor={resolveColor('accent')} padX={1}>
-                            <text color={resolveColor('accent')}>{heading}</text>
+                            <text color={resolveColor('accent')}>{ellipsize(raw, inner)}</text>
                         </box>
                     ),
                 });
-            } else if (headerStyle === 'gradient') {
-                above.push({ rows: 1, node: <Gradient text={heading} preset="sigx" /> });
             } else {
-                above.push({
-                    rows: 1,
-                    node: <box><text color={resolveColor('accent')}>{heading}</text></box>,
-                });
+                const heading = ellipsize(raw, columns);
+                above.push(headerStyle === 'gradient'
+                    ? { rows: 1, node: <Gradient text={heading} preset="sigx" /> }
+                    : { rows: 1, node: <box><text color={resolveColor('accent')}>{heading}</text></box> });
             }
         }
 
         if (props.subtitle) {
             above.push({
                 rows: 1,
-                node: <box><text color={resolveColor('dim')}>{props.subtitle}</text></box>,
+                node: (
+                    <box>
+                        <text color={resolveColor('dim')}>{ellipsize(props.subtitle, columns)}</text>
+                    </box>
+                ),
             });
         }
 
@@ -163,10 +171,15 @@ export const Shell = component<
                 {above.map((s) => s.node)}
                 {boxed
                     ? (
+                        // `bodyTitle` is fitted to the pane because `drawBox`
+                        // widens the box to `label.length + 2` when the label
+                        // is longer than the content — which would push the
+                        // right border and shadow past the terminal edge, where
+                        // the renderer's width clamp cuts them off.
                         <box
                             border="rounded"
                             borderColor={resolveColor('line')}
-                            label={props.bodyTitle}
+                            label={props.bodyTitle ? ellipsize(props.bodyTitle, pane.width) : undefined}
                             labelColor={resolveColor('accent')}
                             padX={1}
                             dropShadow

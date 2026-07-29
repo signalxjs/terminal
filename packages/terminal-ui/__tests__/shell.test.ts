@@ -253,6 +253,42 @@ describe('Shell', () => {
         expect(out.some((l) => l.includes('ops'))).toBe(true);
     });
 
+    it('holds the frame together when every chrome string is far too long', async () => {
+        // Chrome strings are the one place an over-long value could plausibly
+        // cost extra rows. It cannot: the renderer truncates every painted line
+        // to the terminal width in both modes, precisely so a soft-wrapped line
+        // does not shear the frame (`runtime-terminal/src/index.ts:185`). Pinned
+        // here because the row accounting depends on it.
+        const long = 'x'.repeat(300);
+        const { cap, pane } = await mount({
+            title: long,
+            version: long,
+            subtitle: long,
+            bodyTitle: long,
+            tabs: TABS.map((t) => ({ ...t, label: long })),
+            status: [{ key: long, label: long }],
+        }, { columns: 40, rows: 20 });
+
+        const lines = frameLines(cap);
+        expect(lines).toHaveLength(20);
+        for (const line of lines) expect(displayWidth(line)).toBeLessThanOrEqual(40);
+        expect(pane().height).toBeGreaterThanOrEqual(1);
+    });
+
+    it('fits bodyTitle to the pane so a long one cannot widen the box off-screen', async () => {
+        // `drawBox` grows the box to `label.length + 2` when the label is
+        // longer than the content, which would push the right border past the
+        // terminal edge and get it clipped — a frame with no right side.
+        const { cap } = await mount(
+            { bodyTitle: 'a body title far longer than this narrow terminal is wide' },
+            { columns: 40, rows: 20 },
+        );
+        const top = frameLines(cap).find((l) => l.includes('╭'))!;
+        expect(top).toContain('╮');           // the box still has a right edge
+        expect(top).toContain('…');           // and the cut is marked
+        expect(displayWidth(top)).toBeLessThanOrEqual(40);
+    });
+
     it('keeps every painted line within the terminal width', async () => {
         const { cap } = await mount({ tabs: TABS, status: [{ key: 'q', label: 'quit' }] }, { columns: 60 });
         for (const line of frameLines(cap)) expect(displayWidth(line)).toBeLessThanOrEqual(60);
