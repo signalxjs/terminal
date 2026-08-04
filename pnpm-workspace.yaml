@@ -6,8 +6,8 @@ packages:
 # these as "catalog:", which pnpm rewrites to the range below on pack/publish.
 # Keep core single-minor (^X.Y.0) — two @sigx/reactivity copies break reactivity.
 catalog:
-  '@sigx/reactivity': ^0.15.0
-  '@sigx/runtime-core': ^0.15.0
+  '@sigx/reactivity': ^0.14.0
+  '@sigx/runtime-core': ^0.14.0
   '@sigx/vite': ^0.15.0
 
 onlyBuiltDependencies:
