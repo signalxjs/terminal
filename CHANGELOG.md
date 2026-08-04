@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-08-04
+
+### Changed
+
+- **SignalX core retargeted to the 0.15 band** (#120). The `catalog:` block in `pnpm-workspace.yaml` now pins `@sigx/reactivity`, `@sigx/runtime-core` and `@sigx/vite` at `^0.15.0` (was `^0.14.0`); every package continues to reference them as `"catalog:"`, which pnpm rewrites to `^0.15.0` on `pnpm pack`/publish. **Consumers must upgrade core to 0.15.x** — a 0.14.x core no longer satisfies these ranges. This is a packaging-only change: nothing in the terminal API changed, and the single-shared-engine guarantee (one `@sigx/reactivity@0.15.x` across the workspace) is unchanged.
+
+  Verified beyond the unit suite (490 tests) by driving the TUI showcase against core 0.15.0 — it boots, paints the shell chrome, switches demos and cycles themes from the keyboard, and tears down cleanly on Ctrl+C.
+
 ## [0.11.0] - 2026-07-30
 
 ### Added
