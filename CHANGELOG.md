@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **SignalX core retargeted to 1.0** (#126, #127). The `catalog:` block in `pnpm-workspace.yaml` now pins `@sigx/reactivity`, `@sigx/runtime-core` and `@sigx/vite` at `^1.0.0` (was `^0.15.0`); every package continues to reference them as `"catalog:"`, which pnpm rewrites to `^1.0.0` on `pnpm pack`/publish. **Consumers must upgrade core to 1.0.x** — a 0.15.x core no longer satisfies these ranges. Nothing in the terminal API changed. The lockfile also re-resolves `@sigx/vite`'s auto-installed `sigx` peer from a stale `0.4.3` to `1.0.0`, so the dev tree carries exactly one `@sigx/reactivity`.
+
+  Verified beyond the unit suite (490 tests) by driving the TUI showcase against core 1.0.0 through a pseudo-TTY: it boots into the alt screen, walks all nine demos, cycles all five themes, moves focus and counts activations from the keyboard, and tears down cleanly on Ctrl+C.
+
+### Fixed
+
+- **`Button`'s handler is `onClick`, not `onPress`** (#126). The README example and the `verify:pack` scratch app both passed a prop the component never declared; core 0.15 let the excess prop through and core 1.0's stricter JSX props typing rejects it. Both now use `onClick`.
+
 ## [0.12.0] - 2026-08-04
 
 ### Changed
