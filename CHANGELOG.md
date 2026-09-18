@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-18
+
 ### Changed
 
 - **Publishable packages peer on SignalX core at `^1.0.0`** (#128). `@sigx/runtime-terminal` and `@sigx/terminal` carried `@sigx/reactivity` / `@sigx/runtime-core` in `dependencies`, so an app installing them could resolve a second copy of the reactivity singleton beside its own — the failure class core 1.0's duplicate-copy guard now throws on in dev (core rfc-1.0 §3). Both now declare the core singletons as `peerDependencies: "^1.0.0"` with a `devDependencies: "catalog:"` twin for local development, and `@sigx/terminal-ui` / `@sigx/terminal-zero` / `@sigx/terminal-dev`'s existing peers move from `"catalog:"` to the literal `^1.0.0` — the app owns the one copy of core; any 1.x satisfies. Consumers on npm/pnpm 7+ get the peers installed automatically; older resolvers must install `@sigx/reactivity` and `@sigx/runtime-core` themselves. The shape is written by `pnpm sync:core` (`scripts/sync-core.mjs`, `scripts/check-catalog.mjs` and `scripts/lib/core-deps.mjs` re-synced verbatim from repo-template#54) and asserted by `pnpm verify:catalog`; `core-sync.yml` now commits the manifests alongside the catalog.
