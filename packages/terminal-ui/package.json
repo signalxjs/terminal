@@ -82,8 +82,8 @@
         "@sigx/terminal-zero": "workspace:^"
     },
     "peerDependencies": {
-        "@sigx/reactivity": "catalog:",
-        "@sigx/runtime-core": "catalog:"
+        "@sigx/reactivity": "^1.0.0",
+        "@sigx/runtime-core": "^1.0.0"
     },
     "devDependencies": {
         "@sigx/reactivity": "catalog:",
