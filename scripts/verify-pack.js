@@ -141,7 +141,7 @@ function main() {
             '    return () => (',
             '        <box>',
             '            <text>Count: {count.value}</text>',
-            '            <Button label="Increment" onPress={() => { count.value++; }} />',
+            '            <Button label="Increment" onClick={() => { count.value++; }} />',
             '        </box>',
             '    );',
             '});',

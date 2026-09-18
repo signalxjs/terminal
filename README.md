@@ -48,7 +48,7 @@ const App = component(() => {
     return () => (
         <box>
             <text>Count: {count()}</text>
-            <Button label="Increment" onPress={() => count.set(count() + 1)} />
+            <Button label="Increment" onClick={() => count.set(count() + 1)} />
         </box>
     );
 });
