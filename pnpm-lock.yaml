@@ -176,14 +176,13 @@ importers:
         version: 8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4)
 
   packages/runtime-terminal:
-    dependencies:
+    devDependencies:
       '@sigx/reactivity':
         specifier: 'catalog:'
         version: 1.0.0
       '@sigx/runtime-core':
         specifier: 'catalog:'
         version: 1.0.0(@sigx/reactivity@1.0.0)
-    devDependencies:
       '@sigx/vite':
         specifier: 'catalog:'
         version: 1.0.0(sigx@1.0.0)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
@@ -199,12 +198,6 @@ importers:
 
   packages/terminal:
     dependencies:
-      '@sigx/reactivity':
-        specifier: 'catalog:'
-        version: 1.0.0
-      '@sigx/runtime-core':
-        specifier: 'catalog:'
-        version: 1.0.0(@sigx/reactivity@1.0.0)
       '@sigx/runtime-terminal':
         specifier: workspace:^
         version: link:../runtime-terminal
@@ -215,6 +208,12 @@ importers:
         specifier: workspace:^
         version: link:../terminal-zero
     devDependencies:
+      '@sigx/reactivity':
+        specifier: 'catalog:'
+        version: 1.0.0
+      '@sigx/runtime-core':
+        specifier: 'catalog:'
+        version: 1.0.0(@sigx/reactivity@1.0.0)
       '@sigx/vite':
         specifier: 'catalog:'
         version: 1.0.0(sigx@1.0.0)(vite@8.0.12(@types/node@22.19.18)(esbuild@0.28.0)(tsx@4.22.4))
