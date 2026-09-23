@@ -6,10 +6,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 const packagesDir = join(repoRoot, 'packages');
 
-const USAGE = `Usage: node scripts/bump-version.js [patch|minor|major|<X.Y.Z>] [--force]
+// Strict SemVer: X.Y.Z with an optional -prerelease and +build — this string is
+// written verbatim into every package.json.
+const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+
+const USAGE = `Usage: node scripts/bump-version.js [patch|minor|major|<version>] [--force]
 
   patch | minor | major   bump every publishable package (default: patch)
-  <X.Y.Z>                 set every publishable package to an exact version
+  <version>               set every publishable package to an exact SemVer version
+                          (X.Y.Z, optionally -prerelease / +build, e.g. 1.0.0-rc.0)
   --force                 bump even if the packages disagree on a version
   -h, --help              print this help and exit — changes nothing`;
 
@@ -22,7 +27,7 @@ if (argv.includes('--help') || argv.includes('-h')) {
 }
 const force = argv.includes('--force');
 const args = argv.filter((a) => a !== '--force');
-const unknown = args.filter((a) => !/^(patch|minor|major|\d+\.\d+\.\d+\S*)$/.test(a));
+const unknown = args.filter((a) => !['patch', 'minor', 'major'].includes(a) && !SEMVER.test(a));
 if (unknown.length || args.length > 1) {
     console.error(
         `❌ ${unknown.length ? `Unknown argument(s): ${unknown.join(' ')}` : `Expected one bump type or version, got: ${args.join(' ')}`}\n\n${USAGE}`,
@@ -32,7 +37,7 @@ if (unknown.length || args.length > 1) {
 const arg = args[0] || 'patch';
 
 // Check if arg is a version number (e.g., "0.2.0") or bump type
-const isExactVersion = /^\d+\.\d+\.\d+/.test(arg);
+const isExactVersion = SEMVER.test(arg);
 const bumpType = isExactVersion ? null : arg;
 const exactVersion = isExactVersion ? arg : null;
 

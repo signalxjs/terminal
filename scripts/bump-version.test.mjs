@@ -38,18 +38,22 @@ describe('bump-version.js', () => {
         expect(version()).toBe('1.2.3');
     });
 
-    it.each([['--bogus'], ['minr'], ['patch', '--dry']])('rejects %s without bumping', (...args) => {
-        const r = run(...args);
-        expect(r.status).not.toBe(0);
-        expect(r.stderr).toMatch(/Usage:/);
-        expect(version()).toBe('1.2.3');
-    });
+    it.each([['--bogus'], ['minr'], ['patch', '--dry'], ['patch', 'minor'], ['1.2.3.4'], ['1.2.3/..']])(
+        'rejects %s without bumping',
+        (...args) => {
+            const r = run(...args);
+            expect(r.status).not.toBe(0);
+            expect(r.stderr).toMatch(/Usage:/);
+            expect(version()).toBe('1.2.3');
+        },
+    );
 
     it.each([
         ['patch', '1.2.4'],
         ['minor', '1.3.0'],
         ['major', '2.0.0'],
         ['4.5.6', '4.5.6'],
+        ['2.0.0-rc.1', '2.0.0-rc.1'],
     ])('%s still bumps to %s', (arg, expected) => {
         const r = run(arg);
         expect(r.status).toBe(0);
