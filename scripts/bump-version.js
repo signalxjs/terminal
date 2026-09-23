@@ -6,9 +6,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 const packagesDir = join(repoRoot, 'packages');
 
-// Strict SemVer: X.Y.Z with an optional -prerelease and +build — this string is
-// written verbatim into every package.json.
-const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+// SemVer 2.0.0 (the regex from semver.org, no leading zeros in numeric identifiers):
+// X.Y.Z with an optional -prerelease and +build — written verbatim into every package.json.
+const SEMVER =
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 const USAGE = `Usage: node scripts/bump-version.js [patch|minor|major|<version>] [--force]
 
