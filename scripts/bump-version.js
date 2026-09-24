@@ -6,12 +6,39 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 const packagesDir = join(repoRoot, 'packages');
 
-const args = process.argv.slice(2).filter((a) => a !== '--force');
-const force = process.argv.includes('--force');
+// SemVer 2.0.0 (the regex from semver.org, no leading zeros in numeric identifiers):
+// X.Y.Z with an optional -prerelease and +build — written verbatim into every package.json.
+const SEMVER =
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+const USAGE = `Usage: node scripts/bump-version.js [patch|minor|major|<version>] [--force]
+
+  patch | minor | major   bump every publishable package (default: patch)
+  <version>               set every publishable package to an exact SemVer version
+                          (X.Y.Z, optionally -prerelease / +build, e.g. 1.0.0-rc.0)
+  --force                 bump even if the packages disagree on a version
+  -h, --help              print this help and exit — changes nothing`;
+
+// Read-only on anything unrecognised (#132): `--help` used to fall through to a
+// real patch bump, and so did any typo, via bumpVersion()'s `default:` branch.
+const argv = process.argv.slice(2);
+if (argv.includes('--help') || argv.includes('-h')) {
+    console.log(USAGE);
+    process.exit(0);
+}
+const force = argv.includes('--force');
+const args = argv.filter((a) => a !== '--force');
+const unknown = args.filter((a) => !['patch', 'minor', 'major'].includes(a) && !SEMVER.test(a));
+if (unknown.length || args.length > 1) {
+    console.error(
+        `❌ ${unknown.length ? `Unknown argument(s): ${unknown.join(' ')}` : `Expected one bump type or version, got: ${args.join(' ')}`}\n\n${USAGE}`,
+    );
+    process.exit(1);
+}
 const arg = args[0] || 'patch';
 
 // Check if arg is a version number (e.g., "0.2.0") or bump type
-const isExactVersion = /^\d+\.\d+\.\d+/.test(arg);
+const isExactVersion = SEMVER.test(arg);
 const bumpType = isExactVersion ? null : arg;
 const exactVersion = isExactVersion ? arg : null;
 
